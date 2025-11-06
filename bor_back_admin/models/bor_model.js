@@ -10,5 +10,15 @@ Borok.getAll = async () =>{
         throw error;
     }
 };
+Borok.getByKezdoBetuk = async (kezdo) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM borok WHERE nev LIKE ?", [kezdo + '%']);
+        return rows;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
 
 module.exports = Borok;
