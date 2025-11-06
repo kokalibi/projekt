@@ -5,7 +5,7 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('bor-backend-admin:server');
+var debug = require('debug')('bor-back-admin:server');
 var http = require('http');
 require('dotenv').config();
 
@@ -96,3 +96,4 @@ function onListening() {
   DB_DATABASE: process.env.DB_DATABASE  ,
 });
 }
+
