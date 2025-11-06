@@ -1,0 +1,17 @@
+frontend CRA fejleszto szerver telepitese:
+    npx create-react-app@latest mappa_nev
+    --go mappa_nev--
+    npm start
+    npm install react-router-dom
+
+SPA alkalmazas
+
+
+backend szerver:
+    npx express-generator --no-view mappa_nev
+    npm install
+    npm start
+    npm install dotenv
+    npm install nodemon
+    npm install mysql2/promise
+    npm install cors
