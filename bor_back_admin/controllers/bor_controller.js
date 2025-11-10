@@ -16,6 +16,24 @@ const borokController={
         } catch (error) {
             res.status(500).json({ error: 'Internal Server Error' });
         }
+    },
+    async addBor(req,res){
+        const bor=req.body;
+        try {
+            const insertId=await Bor.addBor(bor);
+            res.status(201).json({message:'Bor added', bor_id:insertId});
+        } catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
+    },
+    async deleteBor(req,res){
+        const {id}=req.params;
+        try {
+            await Bor.deleteBor(id);
+            res.json({message:'Bor deleted'});
+        } catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
     }
 };
 module.exports=borokController;

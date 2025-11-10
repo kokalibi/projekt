@@ -6,6 +6,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var borokRouter = require('./routes/borok');
+var kep_upload = require('./routes/kep_feltolt');
 
 var app = express();
 
@@ -24,5 +25,6 @@ app.use(cors(corsOptions));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/borok', borokRouter);
+app.use('/upload', kep_upload);
 
 module.exports = app;
