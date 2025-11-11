@@ -4,7 +4,15 @@ const Borok = {};
 
 Borok.getAll = async () => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok");
+    const [rows] = await pool.query(`
+      SELECT b.*, p.nev AS pince_nev, f.nev AS fajta_nev, t.nev AS tipus_nev, e.evjarat
+      FROM borok b
+      JOIN pincek p ON b.pince_id = p.pince_id
+      JOIN fajták f ON b.fajta_id = f.fajta_id
+      JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
+      JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
+      ORDER BY b.bor_id DESC
+    `);
     return rows;
   } catch (error) {
     console.error(error);
@@ -14,7 +22,10 @@ Borok.getAll = async () => {
 
 Borok.getByKezdoBetuk = async (kezdo) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok WHERE nev LIKE ?", [kezdo + '%']);
+    const [rows] = await pool.query(
+      "SELECT * FROM borok WHERE nev LIKE ?",
+      [kezdo + '%']
+    );
     return rows;
   } catch (error) {
     console.error(error);
@@ -39,43 +50,62 @@ Borok.addBor = async (bor) => {
 
 Borok.deleteBor = async (id) => {
   try {
-    await pool.query(`DELETE FROM borok WHERE bor_id = ?`, [id]);
+    await pool.query("DELETE FROM borok WHERE bor_id = ?", [id]);
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-//meg at kell gondolni
-Borok.GetBytipusId = async (tipus_id) => {
+
+Borok.getByTipusNev = async (tipus_nev) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok WHERE tipus_id = ?", [tipus_id]);
+    const [rows] = await pool.query(`
+      SELECT b.*
+      FROM borok b
+      JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
+      WHERE t.nev LIKE ?`, [tipus_nev]);
     return rows;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-Borok.GetByfajtaId = async (fajta_id) => {
+
+Borok.getByFajtaNev = async (fajta_nev) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok WHERE fajta_id = ?", [fajta_id]);
+    const [rows] = await pool.query(`
+      SELECT b.*
+      FROM borok b
+      JOIN fajták f ON b.fajta_id = f.fajta_id
+      WHERE f.nev LIKE ?`, [fajta_nev]);
     return rows;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-Borok.GetByevjaratId = async (evjarat_id) => {
+
+Borok.getByEvjarat = async (evjarat) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok WHERE evjarat_id = ?", [evjarat_id]);
+    const [rows] = await pool.query(`
+      SELECT b.*
+      FROM borok b
+      JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
+      WHERE e.evjarat = ?`, [evjarat]);
     return rows;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-Borok.GetByPinceId = async (pince_id) => {
+
+Borok.getByPinceNev = async (pince_nev) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM borok WHERE pince_id = ?", [pince_id]);
+    const [rows] = await pool.query(`
+      SELECT b.*
+      FROM borok b
+      JOIN pincek p ON b.pince_id = p.pince_id
+      WHERE p.nev LIKE ?`, [pince_nev]);
     return rows;
   } catch (error) {
     console.error(error);
