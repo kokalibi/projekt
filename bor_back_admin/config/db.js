@@ -1,10 +1,10 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = mysql.createPool({
+const adminpool = mysql.createPool({
     host : process.env.DB_HOST,
-    user:process.env.DB_USER,
-    password:process.env.DB_PASSWORD,
+    user:process.env.DB_ADMIN_USER,
+    password:process.env.DB_ADMIN_PASSWORD,
     database:process.env.DB_DATABASE,
     waitForConnections:true,
         connectionLimit:10,
@@ -13,4 +13,4 @@ const pool = mysql.createPool({
         dateStrings:true
 });
 
-module.exports = pool;
+module.exports = adminpool;
