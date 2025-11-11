@@ -45,5 +45,42 @@ Borok.deleteBor = async (id) => {
     throw error;
   }
 };
+//meg at kell gondolni
+Borok.GetBytipusId = async (tipus_id) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM borok WHERE tipus_id = ?", [tipus_id]);
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+Borok.GetByfajtaId = async (fajta_id) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM borok WHERE fajta_id = ?", [fajta_id]);
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+Borok.GetByevjaratId = async (evjarat_id) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM borok WHERE evjarat_id = ?", [evjarat_id]);
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+Borok.GetByPinceId = async (pince_id) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM borok WHERE pince_id = ?", [pince_id]);
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 module.exports = Borok;

@@ -34,6 +34,45 @@ const borokController={
         } catch (error) {
             res.status(500).json({error:'Internal Server error'});
         }
+    },
+    // meg at kell gondolni
+    async getByTipusId(req,res){
+        const {tipus_id}=req.params;
+        try {
+            const borok=await Bor.GetBytipusId(tipus_id);
+            res.json(borok);
+        } catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
+    },
+    async getByFajtaId(req,res){
+        const {fajta_id}=req.params;
+        try {
+            const borok=await Bor.GetByfajtaId(fajta_id);
+            res.json(borok);
+        } catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
+    },
+    async getByEvjaratId(req,res){
+        const {evjarat_id}=req.params;
+        try {
+            const borok=await Bor.GetByevjaratId(evjarat_id);
+            res.json(borok);
+        }
+        catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
+    },
+    async getByPinceId(req,res){
+        const {pince_id}=req.params;
+        try {
+            const borok=await Bor.GetBypinceId(pince_id);
+            res.json(borok);
+        }
+        catch (error) {
+            res.status(500).json({error:'Internal Server error'});
+        }
     }
 };
 module.exports=borokController;
