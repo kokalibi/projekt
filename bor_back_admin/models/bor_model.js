@@ -1,10 +1,10 @@
-const adminpool = require('../config/db');
+const pool = require('../config/db');
 
 const Borok = {};
 
 Borok.getAll = async () => {
   try {
-    const [rows] = await adminpool.query(`
+    const [rows] = await pool.query(`
       SELECT b.*, p.nev AS pince_nev, f.nev AS fajta_nev, t.nev AS tipus_nev, e.evjarat
       FROM borok b
       JOIN pincek p ON b.pince_id = p.pince_id
@@ -22,7 +22,7 @@ Borok.getAll = async () => {
 
 Borok.getByKezdoBetuk = async (kezdo) => {
   try {
-    const [rows] = await adminpool.query(
+    const [rows] = await pool.query(
       "SELECT * FROM borok WHERE nev LIKE ?",
       [kezdo + '%']
     );
@@ -36,7 +36,7 @@ Borok.getByKezdoBetuk = async (kezdo) => {
 Borok.addBor = async (bor) => {
   try {
     const { nev, evjarat_id, alkohol_fok, ar, leiras, pince_id, fajta_id, tipus_id } = bor;
-    const [result] = await adminpool.query(
+    const [result] = await pool.query(
       `INSERT INTO borok (nev, evjarat_id, alkohol_fok, ar, leiras, pince_id, fajta_id, tipus_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [nev, evjarat_id, alkohol_fok, ar, leiras, pince_id, fajta_id, tipus_id]
@@ -50,7 +50,7 @@ Borok.addBor = async (bor) => {
 
 Borok.deleteBor = async (id) => {
   try {
-    await adminpool.query("DELETE FROM borok WHERE bor_id = ?", [id]);
+    await pool.query("DELETE FROM borok WHERE bor_id = ?", [id]);
   } catch (error) {
     console.error(error);
     throw error;
@@ -59,7 +59,7 @@ Borok.deleteBor = async (id) => {
 
 Borok.getByTipusNev = async (tipus_nev) => {
   try {
-    const [rows] = await adminpool.query(`
+    const [rows] = await pool.query(`
       SELECT b.*
       FROM borok b
       JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
@@ -73,7 +73,7 @@ Borok.getByTipusNev = async (tipus_nev) => {
 
 Borok.getByFajtaNev = async (fajta_nev) => {
   try {
-    const [rows] = await adminpool.query(`
+    const [rows] = await pool.query(`
       SELECT b.*
       FROM borok b
       JOIN fajták f ON b.fajta_id = f.fajta_id
@@ -87,7 +87,7 @@ Borok.getByFajtaNev = async (fajta_nev) => {
 
 Borok.getByEvjarat = async (evjarat) => {
   try {
-    const [rows] = await adminpool.query(`
+    const [rows] = await pool.query(`
       SELECT b.*
       FROM borok b
       JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
@@ -101,7 +101,7 @@ Borok.getByEvjarat = async (evjarat) => {
 
 Borok.getByPinceNev = async (pince_nev) => {
   try {
-    const [rows] = await adminpool.query(`
+    const [rows] = await pool.query(`
       SELECT b.*
       FROM borok b
       JOIN pincek p ON b.pince_id = p.pince_id

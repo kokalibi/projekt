@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const adminpool = mysql.createPool({
+const pool = mysql.createPool({
     host : process.env.DB_HOST,
     user:process.env.DB_ADMIN_USER,
     password:process.env.DB_ADMIN_PASSWORD,
@@ -13,4 +13,4 @@ const adminpool = mysql.createPool({
         dateStrings:true
 });
 
-module.exports = adminpool;
+module.exports = pool;
