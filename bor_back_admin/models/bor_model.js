@@ -5,20 +5,22 @@ const Borok = {};
 Borok.getAll = async () => {
   try {
     const [rows] = await pool.query(`
-      SELECT b.*, p.nev AS pince_nev, f.nev AS fajta_nev, t.nev AS tipus_nev, e.evjarat
-      FROM borok b
-      JOIN pincek p ON b.pince_id = p.pince_id
-      JOIN fajták f ON b.fajta_id = f.fajta_id
-      JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
-      JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
-      ORDER BY b.bor_id DESC
-    `);
+  SELECT b.*, p.nev AS pince_nev, f.nev AS fajta_nev, t.nev AS tipus_nev, e.evjarat
+  FROM borok b
+  JOIN pincek p ON b.pince_id = p.pince_id
+  JOIN fajtak f ON b.fajta_id = f.fajta_id
+  JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
+  JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
+  ORDER BY b.bor_id ASC
+`);
+
     return rows;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
+
 
 Borok.getByKezdoBetuk = async (kezdo) => {
   try {
@@ -76,7 +78,7 @@ Borok.getByFajtaNev = async (fajta_nev) => {
     const [rows] = await pool.query(`
       SELECT b.*
       FROM borok b
-      JOIN fajták f ON b.fajta_id = f.fajta_id
+      JOIN fajtak f ON b.fajta_id = f.fajta_id
       WHERE f.nev LIKE ?`, [fajta_nev]);
     return rows;
   } catch (error) {

@@ -24,7 +24,7 @@ app.use(cors(corsOptions));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/borok', borokRouter);
-app.use('/upload', kep_upload);
+app.use('/api/borok', borokRouter);
+app.use('/api/upload', kep_upload);
 
 module.exports = app;
