@@ -39,25 +39,27 @@ setTipusok((await API.get("/adat/tipusok")).data);
 
   const handleSubmit = async () => {
     try {
-      const response = await API.post("/borok", bor);
-      const newId = response.data.bor_id;
 
-      if (kepFile) {
-        const formData = new FormData();
-        formData.append("kep", kepFile);
-        formData.append("bor_id", newId);
+    const response = await API.post("/borok", bor);
+    const newId = response.data.bor_id;
 
-        await API.post("/upload", formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-      }
-
-      alert("Bor sikeresen hozzáadva!");
-    } catch (err) {
-      console.error(err);
-      alert("Hiba történt hozzáadáskor.");
+    if (kepFile) {
+      const formData = new FormData();
+      formData.append("kep", kepFile);
+ 
+      await API.post(`/upload/${newId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
     }
+
+    alert("Bor sikeresen hozzáadva!");
+  } catch (err) {
+    console.error("Hiba a mentés során:", err.response || err);
+    alert("Hiba történt a hozzáadás során.");
+  }
   };
+
+  
 
   return (
     <div>
