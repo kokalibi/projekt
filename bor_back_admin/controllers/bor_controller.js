@@ -78,7 +78,18 @@ const borokController = {
     } catch (error) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
+  },
+  async getById(req, res) {
+  try {
+    const { id } = req.params;
+    const bor = await Bor.getById(id);
+    res.json(bor);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
+}
+
 };
 
 module.exports = borokController;

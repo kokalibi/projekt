@@ -7,6 +7,9 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var borokRouter = require('./routes/borok');
 var kep_upload = require('./routes/kep_feltolt');
+var adatRouter = require('./routes/adat');
+
+
 
 var app = express();
 
@@ -21,10 +24,13 @@ var corsOptions={
     origin: "http://localhost:3000"
 }
 app.use(cors(corsOptions));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/borok', borokRouter);
 app.use('/api/upload', kep_upload);
+app.use('/api/adat', adatRouter);
+
 
 module.exports = app;

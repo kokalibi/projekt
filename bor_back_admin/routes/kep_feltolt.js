@@ -1,27 +1,20 @@
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join('public', 'uploads', 'borok');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
+  destination: "./public/uploads/kep",
   filename: (req, file, cb) => {
-    const borId = req.body.bor_id;
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `${borId}${ext}`);
-  }
+    cb(null, req.body.bor_id + ".jpg");
+  },
 });
 
 const upload = multer({ storage });
 
-router.post('/', upload.single('image'), (req, res) => {
-  res.json({ message: 'Kép sikeresen feltöltve', file: req.file.filename });
+router.post("/", upload.single("kep"), (req, res) => {
+  res.json({ message: "Kép feltöltve" });
 });
 
 module.exports = router;
