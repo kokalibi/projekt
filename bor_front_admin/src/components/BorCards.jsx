@@ -9,7 +9,7 @@ function BorCard({ bor, onDeleted }) {
   const imageUrl = `${process.env.REACT_APP_API_BASE || "http://localhost:8080"}/uploads/kep/${bor.bor_id}.jpg`;
 
   const deleteBor = async (e) => {
-    e.stopPropagation(); // hogy kattintáskor ne nyissa meg a részletező oldalt
+    e.stopPropagation(); 
 
     if (!window.confirm("Biztosan törlöd ezt a bort?")) return;
 
