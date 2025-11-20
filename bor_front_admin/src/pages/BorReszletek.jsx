@@ -40,7 +40,7 @@ function BorReszletek() {
   <img
     src={imageUrl}
     alt={bor.nev}
-    onError={(e) => (e.target.src = "/placeholder-wine.png")}
+    onError={(e) => (e.target.src = "../easter egg3.jpg")}
     style={{
       width: "100%",
       height: "100%",
