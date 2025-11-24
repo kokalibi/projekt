@@ -8,5 +8,7 @@ router.get('/kezdo/:kezdo', controller.getByKezdoBetuk);
 router.post('/', controller.addBor);
 router.delete('/:id', controller.deleteBor);
 router.get('/:id', controller.getById);
+router.put("/:id", controller.updateBor);
+
 
 module.exports = router;

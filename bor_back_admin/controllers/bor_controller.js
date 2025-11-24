@@ -71,19 +71,21 @@ const borokController = {
       console.error("Szűrés hiba:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }/*,
-  async updateBor(req, res) {
+  },
+async updateBor(req, res) {
   try {
     const { id } = req.params;
-    const bor = req.body;
+    const adatok = req.body;
 
-    await Bor.updateBor(id, bor);
-    res.json({ message: "Bor sikeresen frissítve" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
+    await Bor.updateBor(id, adatok);
+
+    res.json({ message: "Bor frissítve" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Hiba történt frissítés közben" });
   }
-}*/
+}
+
 
 };
 

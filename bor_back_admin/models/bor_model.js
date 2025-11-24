@@ -137,22 +137,47 @@ Borok.szures = async ({ pince_nev, fajta_nev, tipus_nev, evjarat }) => {
   return rows;
 };
 
-/*Borok.updateBor = async (id, bor) => {
-  const { nev, evjarat_id, alkohol_fok, ar, leiras, pince_id, fajta_id, tipus_id } = bor;
+Borok.updateBor = async (id, adat) => {
+  try {
+    const {
+      nev,
+      evjarat_id,
+      alkohol_fok,
+      ar,
+      leiras,
+      pince_id,
+      fajta_id,
+      tipus_id
+    } = adat;
 
-  await pool.query(`
-    UPDATE borok SET 
-      nev = ?, 
-      evjarat_id = ?, 
-      alkohol_fok = ?, 
-      ar = ?, 
-      leiras = ?, 
-      pince_id = ?, 
-      fajta_id = ?, 
-      tipus_id = ?
-    WHERE bor_id = ?
-  `, [nev, evjarat_id, alkohol_fok, ar, leiras, pince_id, fajta_id, tipus_id, id]);
+    await pool.query(
+      `UPDATE borok SET
+        nev = ?,
+        evjarat_id = ?,
+        alkohol_fok = ?,
+        ar = ?,
+        leiras = ?,
+        pince_id = ?,
+        fajta_id = ?,
+        tipus_id = ?
+      WHERE bor_id = ?`,
+      [
+        nev,
+        evjarat_id,
+        alkohol_fok,
+        ar,
+        leiras,
+        pince_id,
+        fajta_id,
+        tipus_id,
+        id
+      ]
+    );
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
-*/
+
 
 module.exports = Borok;
