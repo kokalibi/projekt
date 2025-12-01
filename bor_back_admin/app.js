@@ -10,7 +10,6 @@ var kep_upload = require('./routes/kep_feltolt');
 var adatRouter = require('./routes/adat');
 
 
-
 var app = express();
 
 app.use(logger('dev'));
@@ -18,12 +17,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// --- CORS BEÁLLÍTÁS TÖBB FRONT-END PORHOZ ---
 const cors = require('cors');
-var corsOptions={
+
+// Engedélyezett források (whitelist) meghatározása
+const allowedOrigins = [
+  'http://localhost:3000', // Első front-end port
+  'http://localhost:3001', // Második front-end port
+];
+
+var corsOptions = {
     "credentials" : true,
-    origin: "http://localhost:3000"
+    // Dinamikus origin függvény a több forrás engedélyezéséhez
+    origin: function (origin, callback) {
+        // Engedélyezzük, ha nincs origin (pl. Postman vagy azonos domainről érkező kérés),
+        // VAGY ha az origin benne van az engedélyezett listában.
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true); // Engedélyezés
+        } else {
+            // A hiba könnyebb debuggolásához adtunk hozzá egy konzol üzenetet
+            console.error(`CORS tiltás: ${origin} nem engedélyezett!`);
+            callback(new Error('Nem engedélyezett a CORS!')); // Tiltás
+        }
+    }
 }
 app.use(cors(corsOptions));
+// --- CORS BEÁLLÍTÁS VÉGE ---
+
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.use('/', indexRouter);

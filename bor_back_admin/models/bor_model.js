@@ -17,9 +17,8 @@ Borok.getAll = async () => {
     JOIN fajtak f ON b.fajta_id = f.fajta_id
     JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
     JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
-    ORDER BY b.bor_id ASC
-  `);
-  return rows;
+    LIMIT ? OFFSET ?
+    `, [limit, offset]);
 };
 
 // ───────────────────────────────────────────
