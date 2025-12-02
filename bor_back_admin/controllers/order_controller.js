@@ -1,43 +1,44 @@
-const pool = require('../config/db');
+const db = require("../config/db");
 
-
-exports.getAll = async (req, res) => {
-    const [rows] = await db.query("SELECT * FROM rendelesek");
+// ➤ MINDEN RENDELÉS LISTA
+exports.getAllOrders = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM orders ORDER BY order_id DESC");
     res.json(rows);
+  } catch (err) {
+    console.error("order_controller getAllOrders:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };
 
-exports.getById = async (req, res) => {
+// ➤ EGY RENDELÉS
+exports.getOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
     const [rows] = await db.query(
-        "SELECT * FROM rendelesek WHERE rendeles_id = ?",
-        [req.params.id]
+      "SELECT * FROM orders WHERE order_id = ?",
+      [id]
     );
-    res.json(rows[0]);
+    res.json(rows[0] || {});
+  } catch (err) {
+    console.error("order_controller getOrderById:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };
 
-exports.szures = async (req, res) => {
-    const { statusz } = req.query;
-    const [rows] = await db.query(
-        "SELECT * FROM rendelesek WHERE statusz = ?",
-        [statusz]
-    );
-    res.json(rows);
-};
+// ➤ ÚJ RENDELÉS
+exports.addOrder = async (req, res) => {
+  try {
+    const { nev, email, cim } = req.body;
 
-exports.getRandom = async (req, res) => {
-    const [rows] = await db.query(
-        "SELECT * FROM rendelesek ORDER BY RAND() LIMIT 1"
-    );
-    res.json(rows[0]);
-};
-
-exports.create = async (req, res) => {
-    const { vasarlo_id, mennyiseg, fizetesi_mod } = req.body;
-
-    await db.query(
-        `INSERT INTO rendelesek (vasarlo_id, mennyiseg, fizetesi_mod)
-         VALUES (?,?,?)`,
-        [vasarlo_id, mennyiseg, fizetesi_mod]
+    const [result] = await db.query(
+      "INSERT INTO orders (nev, email, cim) VALUES (?, ?, ?)",
+      [nev, email, cim]
     );
 
-    res.json({ message: "Rendelés felvéve" });
+    res.json({ order_id: result.insertId });
+  } catch (err) {
+    console.error("order_controller addOrder:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };

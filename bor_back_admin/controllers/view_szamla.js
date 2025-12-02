@@ -1,14 +1,18 @@
-const db = require("../db");
+const db = require("../config/db");
 
-exports.getAll = async (req, res) => {
-    const [rows] = await db.query("SELECT * FROM view_szamla");
-    res.json(rows);
-};
+// Számla nézet lekérése
+exports.getSzamla = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-exports.getByInvoiceId = async (req, res) => {
     const [rows] = await db.query(
-        "SELECT * FROM view_szamla WHERE szamla_id = ?",
-        [req.params.id]
+      "SELECT * FROM view_szamla WHERE order_id = ?",
+      [id]
     );
+
     res.json(rows);
+  } catch (err) {
+    console.error("view_szamla hiba:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };

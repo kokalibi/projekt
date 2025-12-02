@@ -1,57 +1,64 @@
+// ================================
+//  TELJES, MŰKÖDŐ app.js
+// ================================
+
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var borokRouter = require('./routes/borok');
-var kep_upload = require('./routes/kep_feltolt');
 var adatRouter = require('./routes/adat');
-
+var uploadRouter = require('./routes/kep_feltolt');
+var ordersRouter = require('./routes/order_routes');
+var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
 
 var app = express();
 
+// --------------------------
+// ⭐ CORS – engedélyezve Vite-nek
+// --------------------------
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174"
+    ],
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    credentials: true,
+  })
+);
+
+// --------------------------
+// Alap middleware-ek
+// --------------------------
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// --------------------------
+// Statikus fájlok (képek!)
+// --------------------------
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- CORS BEÁLLÍTÁS TÖBB FRONT-END PORHOZ ---
-const cors = require('cors');
-
-// Engedélyezett források (whitelist) meghatározása
-const allowedOrigins = [
-  'http://localhost:3000', // Első front-end port
-  'http://localhost:3001', // Második front-end port
-];
-
-var corsOptions = {
-    "credentials" : true,
-    // Dinamikus origin függvény a több forrás engedélyezéséhez
-    origin: function (origin, callback) {
-        // Engedélyezzük, ha nincs origin (pl. Postman vagy azonos domainről érkező kérés),
-        // VAGY ha az origin benne van az engedélyezett listában.
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true); // Engedélyezés
-        } else {
-            // A hiba könnyebb debuggolásához adtunk hozzá egy konzol üzenetet
-            console.error(`CORS tiltás: ${origin} nem engedélyezett!`);
-            callback(new Error('Nem engedélyezett a CORS!')); // Tiltás
-        }
-    }
-}
-app.use(cors(corsOptions));
-// --- CORS BEÁLLÍTÁS VÉGE ---
-
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-
+// --------------------------
+// Route-ok bekötése
+// --------------------------
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
 app.use('/api/borok', borokRouter);
-app.use('/api/upload', kep_upload);
 app.use('/api/adat', adatRouter);
+app.use('/api/upload', uploadRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/order-items', orderItemsRouter);
 
-
+// --------------------------
 module.exports = app;

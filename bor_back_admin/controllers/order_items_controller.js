@@ -1,21 +1,35 @@
-const db = require("../db");
+const db = require("../config/db");
 
-exports.getByOrderId = async (req, res) => {
+// ➤ TÉTELEK LEKÉRÉSE
+exports.getOrderItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+
     const [rows] = await db.query(
-        "SELECT * FROM rendeles_tetelek WHERE rendeles_id = ?",
-        [req.params.id]
+      "SELECT * FROM order_items WHERE order_id = ?",
+      [id]
     );
+
     res.json(rows);
+  } catch (err) {
+    console.error("order_items_controller hiba:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };
 
-exports.addItem = async (req, res) => {
-    const { rendeles_id, bor_id, mennyiseg, osszeg } = req.body;
+// ➤ ÚJ TÉTEL
+exports.addOrderItem = async (req, res) => {
+  try {
+    const { order_id, bor_id, mennyiseg } = req.body;
 
-    await db.query(
-        `INSERT INTO rendeles_tetelek (rendeles_id, bor_id, mennyiseg, osszeg)
-         VALUES (?,?,?,?)`,
-        [rendeles_id, bor_id, mennyiseg, osszeg]
+    const [result] = await db.query(
+      "INSERT INTO order_items (order_id, bor_id, mennyiseg) VALUES (?, ?, ?)",
+      [order_id, bor_id, mennyiseg]
     );
 
-    res.json({ message: "Tétel hozzáadva" });
+    res.json({ id: result.insertId });
+  } catch (err) {
+    console.error("order_items_controller hiba:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
 };

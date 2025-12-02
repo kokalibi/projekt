@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const controller = require("../controllers/order_controller");
+const orderController = require("../controllers/order_controller");
 
-router.get("/", controller.getAll);
-router.get("/random", controller.getRandom);
-router.get("/szures", controller.szures);
-router.get("/:id", controller.getById);
-router.post("/", controller.create);
+// ➤ Minden rendelés lekérése
+router.get("/", orderController.getAllOrders);
+
+// ➤ Egy rendelés lekérése
+router.get("/:id", orderController.getOrderById);
+
+// ➤ Új rendelés létrehozása
+router.post("/", orderController.addOrder);
 
 module.exports = router;

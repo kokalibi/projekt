@@ -1,56 +1,54 @@
-
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
+const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const sharp = require("sharp");
+const fs = require("fs");
 
+// ==========================
+// KÉPMAPPA LÉTREHOZÁSA
+// ==========================
 const UPLOAD_DIR = path.join(__dirname, "../public/uploads/kep");
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const allowedMime = ["image/jpeg", "image/jpg", "image/png"];
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    const borId = req.params.bor_id || req.body.bor_id;
-    if (!borId) return cb(new Error("Hiányzik a bor_id"));
-
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${borId}${ext}`);
-  }
-});
-
-
-const fileFilter = (req, file, cb) => {
-  if (allowedMime.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Csak JPG vagy PNG formátum engedélyezett!"));
-  }
-};
-
+// ==========================
+// MULTER beállítás (MEMÓRIÁBA töltjük, hogy sharp tudja konvertálni)
+// ==========================
 const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // max 5MB
 });
 
+// ==========================
+// KÉPFELTÖLTÉS + JPG konverzió
+// ==========================
+router.post("/:id", upload.single("file"), async (req, res) => {
+  try {
+    const borId = req.params.id;
 
-router.post("/:bor_id?", upload.single("kep"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "Nincs feltöltött kép." });
+    if (!req.file) {
+      return res.status(400).json({ error: "Nincs feltöltött fájl!" });
+    }
+
+    const outputPath = path.join(UPLOAD_DIR, `${borId}.jpg`);
+
+    // SHARP → konvertálás + méretezés
+    await sharp(req.file.buffer)
+      .resize({ width: 800, height: 800, fit: "contain", background: "white" })
+      .jpeg({ quality: 90 })
+      .toFile(outputPath);
+
+    res.json({
+      message: "Kép sikeresen feltöltve és konvertálva",
+      file: `${borId}.jpg`,
+    });
+  } catch (err) {
+    console.error("Kép feltöltési hiba:", err);
+    res.status(500).json({ error: "Kép mentése sikertelen" });
   }
-  res.json({
-    message: "Kép sikeresen feltöltve!",
-    filename: req.file.filename
-  });
 });
 
 module.exports = router;
