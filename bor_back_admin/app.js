@@ -15,6 +15,7 @@ var adatRouter = require('./routes/adat');
 var uploadRouter = require('./routes/kep_feltolt');
 var ordersRouter = require('./routes/order_routes');
 var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
+var authRouter = require("./routes/auth");
 
 var app = express();
 
@@ -60,5 +61,6 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/order-items', orderItemsRouter);
 
-// --------------------------
+// ⬇⬇⬇ Auth route-ok
+app.use("/api/auth", authRouter);
 module.exports = app;

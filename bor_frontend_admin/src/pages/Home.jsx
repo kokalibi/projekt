@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Carousel, Container } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import API from "../api";
 
 export default function Home() {
   const [borok, setBorok] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     API.get("/borok").then((res) => setBorok(res.data));
@@ -16,21 +18,20 @@ export default function Home() {
 
       <Carousel interval={3500}>
         {borok.map((b) => {
-          const imageUrl =
-            `http://localhost:8080/uploads/kep/${b.bor_id}.jpg`;
+          const imageUrl = `http://localhost:8080/uploads/kep/${b.bor_id}.jpg`;
 
           return (
-            <Carousel.Item key={b.bor_id}>
-              
-              {/* Képtartó doboz */}
+            <Carousel.Item
+              key={b.bor_id}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/bor/${b.bor_id}`)}
+            >
               <div
+                className="d-flex justify-content-center align-items-center"
                 style={{
                   width: "100%",
-                  height: "450px",
-                  background: "#ffffff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  height: "400px",
+                  background: "#fff",
                   borderRadius: "12px",
                   overflow: "hidden",
                   padding: "20px",
@@ -39,20 +40,18 @@ export default function Home() {
                 <img
                   src={imageUrl}
                   alt={b.nev}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/easter egg3.jpg";
-                  }}
+                  onError={(e) => (e.target.src = "/easter egg3.jpg")}
+                  className="img-fluid"
                   style={{
                     maxHeight: "100%",
                     maxWidth: "100%",
-                    objectFit: "contain",   // <<< A LEGFONTOSABB!
+                    objectFit: "contain",
                   }}
                 />
               </div>
 
-              {/* Szöveg */}
               <Carousel.Caption
+                className="d-none d-md-block"
                 style={{
                   background: "rgba(0,0,0,0.6)",
                   borderRadius: "8px",

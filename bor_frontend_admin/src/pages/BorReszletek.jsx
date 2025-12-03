@@ -47,27 +47,34 @@ function BorReszletek() {
       {/* KÉP */}
       <div
         style={{
-          height: 350,
-          background: "#f8f9fa",
+          width: "100%",
+          maxWidth: "500px",       // <<< NE LEGYEN TÚL SZÉLES
+          margin: "0 auto",        // <<< KÖZÉPRE IGAZÍTÁS
+          background: "#fff",
+          padding: "10px",
+          borderRadius: "12px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          overflow: "hidden",
-          borderBottom: "1px solid #ddd"
         }}
       >
         <img
-  src={`http://localhost:8080/uploads/kep/${bor.bor_id}.jpg`}
-  style={{
-    width: "100%",
-    maxHeight: "400px",
-    objectFit: "cover",
-    borderRadius: "10px"
-  }}
-  onError={(e) => (e.target.src = "/easter egg3.jpg")}
-/>
-
+          src={`http://localhost:8080/uploads/kep/${bor.bor_id}.jpg`}
+          alt={bor.nev}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/easter egg3.jpg";
+          }}
+          style={{
+            width: "100%",
+            height: "auto",
+            maxHeight: "350px",
+            objectFit: "contain",
+          }}
+        />
       </div>
+
+
 
       <Card.Body>
         {/* CÍM */}
@@ -212,7 +219,7 @@ function BorReszletek() {
           )}
 
           {editMode && (
-            <Button variant="success" onClick={saveChanges}>
+            <Button variant="success" onClick={saveChanges} >
               Mentés
             </Button>
           )}
