@@ -1,7 +1,8 @@
 // controllers/auth_controller.js
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwtMiddleware = require("../middleware/auth");
+const jwtMiddleware = require("../middleware/auth_middleware");
+
 
 // token helper
 const createToken =
