@@ -14,19 +14,20 @@ export default function Register() {
   const [hiba, setHiba] = useState("");
 
   const handleRegister = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await API.post("/auth/register", {
-        nev, email, jelszo, cim
-      });
+  try {
+    const res = await API.post("/auth/register", {
+      nev, email, jelszo, cim
+    });
 
-      login(res.data.token, res.data.user);
-      navigate("/");
-    } catch (err) {
-      setHiba(err.response?.data?.error || "Hiba történt");
-    }
-  };
+    login(res.data.accessToken, res.data.user);
+    navigate("/");
+  } catch (err) {
+    setHiba(err.response?.data?.error || "Hiba történt");
+  }
+};
+
 
   return (
     <div className="container mt-5" style={{ maxWidth: 550 }}>

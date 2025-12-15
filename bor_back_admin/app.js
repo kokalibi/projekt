@@ -8,14 +8,13 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var borokRouter = require('./routes/borok');
 var adatRouter = require('./routes/adat');
 var uploadRouter = require('./routes/kep_feltolt');
 var ordersRouter = require('./routes/order_routes');
 var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
 var authRouter = require("./routes/auth");
+var cookieParser = require("cookie-parser");
 
 var app = express();
 
@@ -52,8 +51,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --------------------------
 // Route-ok bekötése
 // --------------------------
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 app.use('/api/borok', borokRouter);
 app.use('/api/adat', adatRouter);
