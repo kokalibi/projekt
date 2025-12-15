@@ -1,42 +1,50 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import API from "../api"; // a te axios instance-öd
+import { createContext, useContext, useEffect, useState } from "react";
+import API from "../api";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);    // bejelentkezett felhasználó adatai
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // TOKEN VÁLTOZÁSKOR USER BETÖLTÉSE
+  // 🔄 OLDAL FRISSÍTÉSKOR: token → user
   useEffect(() => {
-    if (!token) {
-      setUser(null);
-      return;
-    }
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
 
-    API.get("/auth/me")
-      .then(res => setUser(res.data.user))
-      .catch(() => {
-        setUser(null);
-        setToken("");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await API.get("/auth/me");
+        setUser(res.data); // 🔥 EZ FONTOS
+      } catch (err) {
         localStorage.removeItem("token");
-      });
-  }, [token]);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const login = (token, user) => {
-    setToken(token);
-    setUser(user);
+    loadUser();
+  }, []);
+
+  // 🔐 LOGIN – EZ HIÁNYZOTT / ROSSZ VOLT
+  const login = (token, userData) => {
     localStorage.setItem("token", token);
+    setUser(userData); // 🔥 EZ A DÖNTŐ SOR
   };
 
+  // 🚪 LOGOUT
   const logout = () => {
-    setToken("");
-    setUser(null);
     localStorage.removeItem("token");
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

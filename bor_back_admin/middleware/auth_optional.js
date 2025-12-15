@@ -1,22 +1,20 @@
-// middleware/auth_optional.js
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "nagyon_titkos_fallback";
 
 module.exports = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    req.user = null; // no token → vendég
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    req.user = null;
     return next();
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;         // { user_id, email }
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
-    req.user = null;            // hibás token → kezeljük vendégként
+    console.error("JWT optional verify hiba:", err.message);
+    req.user = null;
   }
 
   next();

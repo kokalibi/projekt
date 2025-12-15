@@ -1,168 +1,269 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import API from "../api";
 import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
 
 export default function Checkout() {
-  const { cart, removeFromCart, changeQty, clearCart } = useCart();
-  const { user } = useAuth();
+  /* =======================
+     KOSÁR
+  ======================= */
+ const {
+  cart = [],
+  updateQuantity,
+  removeFromCart,
+  clearCart
+} = useCart();
 
-  // Űrlap mezők
-  const [nev, setNev] = useState("");
-  const [email, setEmail] = useState("");
-  const [cim, setCim] = useState("");
 
-  // Állapotok
+  /* =======================
+     ŰRLAP ÁLLAPOT
+  ======================= */
+  const [form, setForm] = useState({
+    teljes_nev: "",
+    email: "",
+    telefon: "",
+    orszag: "Magyarorszag",
+    varos: "",
+    iranyitoszam: "",
+    cim_sor1: "",
+    cim_sor2: ""
+  });
+
+  /* =======================
+     UI ÁLLAPOTOK
+  ======================= */
+  const [loading, setLoading] = useState(false);
   const [hiba, setHiba] = useState("");
   const [siker, setSiker] = useState("");
 
-  // Ha user be van jelentkezve → automatikus kitöltés
-  useEffect(() => {
-    if (user) {
-      setNev(user.nev || "");
-      setEmail(user.email || "");
-      setCim(user.cim || "");
-    }
-  }, [user]);
+  /* =======================
+     BEJELENTKEZETT USER ADATAI
+     /api/auth/me
+  ======================= */
+useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const res = await API.get("/auth/me");
+      setForm(prev => ({
+        ...prev,
+        teljes_nev: res.data.nev || "",
+        email: res.data.email || "",
+        cim_sor1: res.data.cim || ""
+      }));
+    } catch {}
+  };
+  loadUser();
+}, []);
 
-  // Kosár összeg
-  const total = cart.reduce((sum, item) => sum + item.ar * item.qty, 0);
 
-  // Rendelés küldése
-  const submitOrder = async (e) => {
+  /* =======================
+     VÉGÖSSZEG (NaN-BIZTOS)
+  ======================= */
+  const osszesen = useMemo(() => {
+    return cart.reduce(
+      (sum, item) =>
+        sum +
+        Number(item.ar || 0) * Number(item.mennyiseg || 1),
+      0
+    );
+  }, [cart]);
+
+  /* =======================
+     INPUT KEZELÉS
+  ======================= */
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  /* =======================
+     RENDELÉS LEADÁSA
+  ======================= */
+  const submit = async (e) => {
     e.preventDefault();
-
-    if (!nev || !email || !cim) {
-      setHiba("Minden mezőt ki kell tölteni!");
-      return;
-    }
+    setHiba("");
+    setSiker("");
 
     if (cart.length === 0) {
-      setHiba("A kosár üres!");
+      setHiba("A kosar ures.");
       return;
     }
 
+    if (
+      !form.teljes_nev ||
+      !form.orszag ||
+      !form.varos ||
+      !form.iranyitoszam ||
+      !form.cim_sor1
+    ) {
+      setHiba("Kerlek toltsd ki a kotelezo mezoket.");
+      return;
+    }
+
+    const payload = {
+      fizetesi_mod: "utanvet",
+      szallitasi_cim: form,
+      szamlazasi_cim: form,
+      kosar: cart.map(item => ({
+        bor_id: item.bor_id,
+        bor_nev: item.nev,
+        egysegar: Number(item.ar),
+        mennyiseg: Number(item.mennyiseg || 1)
+      }))
+    };
+
     try {
-      setHiba("");
-      setSiker("");
-
-      // 1) Rendelés létrehozása
-      const orderRes = await API.post("/orders", {
-        nev,
-        email,
-        cim
-      });
-
-      const orderId = orderRes.data.order_id;
-
-      // 2) Tételek mentése
-      for (const item of cart) {
-        await API.post("/order-items", {
-          order_id: orderId,
-          bor_id: item.bor_id,
-          mennyiseg: item.qty
-        });
-      }
-
-      setSiker("A rendelés sikeresen elküldve!");
+      setLoading(true);
+      const res = await API.post("/orders", payload);
+      setSiker(`Rendeles sikeres! Azonosito: ${res.data.rendeles_id}`);
       clearCart();
-
     } catch (err) {
       console.error(err);
-      setHiba("Hiba történt a rendelés leadásakor.");
+      setHiba("Hiba tortent a rendeles leadasakor.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  /* =======================
+     RENDER
+  ======================= */
   return (
     <div className="container mt-4">
-      <h2>Rendelés</h2>
+      <h1>Rendeles</h1>
 
       {hiba && <div className="alert alert-danger">{hiba}</div>}
       {siker && <div className="alert alert-success">{siker}</div>}
 
       <div className="row">
-        {/* Bal oldal – űrlap */}
-        <div className="col-md-6">
-          <form onSubmit={submitOrder}>
+        {/* ===== ŰRLAP ===== */}
+        <div className="col-md-8">
+          <form onSubmit={submit}>
+            <input
+              className="form-control mb-2"
+              name="teljes_nev"
+              placeholder="Teljes nev *"
+              value={form.teljes_nev}
+              onChange={onChange}
+            />
 
-            <div className="mb-3">
-              <label className="form-label">Név</label>
-              <input
-                className="form-control"
-                value={nev}
-                onChange={(e) => setNev(e.target.value)}
-              />
-            </div>
+            <input
+              className="form-control mb-2"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={onChange}
+            />
 
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+            <input
+              className="form-control mb-2"
+              name="telefon"
+              placeholder="Telefon"
+              value={form.telefon}
+              onChange={onChange}
+            />
 
-            <div className="mb-3">
-              <label className="form-label">Cím</label>
-              <input
-                className="form-control"
-                value={cim}
-                onChange={(e) => setCim(e.target.value)}
-              />
-            </div>
+            <input
+              className="form-control mb-2"
+              name="orszag"
+              placeholder="Orszag *"
+              value={form.orszag}
+              onChange={onChange}
+            />
 
-            <button className="btn btn-success w-100">
-              Rendelés leadása
+            <input
+              className="form-control mb-2"
+              name="varos"
+              placeholder="Varos *"
+              value={form.varos}
+              onChange={onChange}
+            />
+
+            <input
+              className="form-control mb-2"
+              name="iranyitoszam"
+              placeholder="Iranyitoszam *"
+              value={form.iranyitoszam}
+              onChange={onChange}
+            />
+
+            <input
+              className="form-control mb-2"
+              name="cim_sor1"
+              placeholder="Cim *"
+              value={form.cim_sor1}
+              onChange={onChange}
+            />
+
+            <input
+              className="form-control mb-3"
+              name="cim_sor2"
+              placeholder="Cim (opcionalis)"
+              value={form.cim_sor2}
+              onChange={onChange}
+            />
+
+            <button
+              className="btn btn-success w-100"
+              disabled={loading}
+            >
+              {loading ? "Kuld..." : "Rendeles leadasa"}
             </button>
           </form>
         </div>
 
-        {/* Jobb oldal – kosár tartalma */}
-        <div className="col-md-6">
-          <h4>Kosár</h4>
+        {/* ===== KOSÁR ===== */}
+        <div className="col-md-4">
+  <h4>Kosar</h4>
 
-          {cart.length === 0 && <p>A kosár üres.</p>}
+  {cart.length === 0 && (
+    <p className="text-muted">A kosar ures.</p>
+  )}
 
-          {cart.map((item) => (
-            <div
-              key={item.bor_id}
-              className="d-flex align-items-center justify-content-between border-bottom py-2"
-            >
-              <div>
-                <strong>{item.nev}</strong>
-                <div>{item.ar} Ft</div>
-              </div>
+  {cart.map(item => (
+  <div key={item.bor_id} className="border-bottom py-2">
+    <strong>{item.nev}</strong>
 
-              <div className="d-flex align-items-center">
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => changeQty(item.bor_id, item.qty - 1)}
-                >
-                  -
-                </button>
+    <div className="d-flex align-items-center mt-1">
+      <button
+        className="btn btn-sm btn-outline-secondary"
+        onClick={() =>
+          updateQuantity(item.bor_id, item.mennyiseg - 1)
+        }
+      >
+        −
+      </button>
 
-                <span className="mx-2">{item.qty}</span>
+      <span className="mx-2">{item.mennyiseg}</span>
 
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => changeQty(item.bor_id, item.qty + 1)}
-                >
-                  +
-                </button>
+      <button
+        className="btn btn-sm btn-outline-secondary"
+        onClick={() =>
+          updateQuantity(item.bor_id, item.mennyiseg + 1)
+        }
+      >
+        +
+      </button>
 
-                <button
-                  className="btn btn-danger btn-sm ms-3"
-                  onClick={() => removeFromCart(item.bor_id)}
-                >
-                  X
-                </button>
-              </div>
-            </div>
-          ))}
+      <span className="ms-auto">
+        {item.ar * item.mennyiseg} Ft
+      </span>
 
-          <h5 className="mt-3">Összesen: {total} Ft</h5>
-        </div>
+      <button
+        className="btn btn-sm btn-danger ms-2"
+        onClick={() => removeFromCart(item.bor_id)}
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+))}
+
+
+  <h5 className="mt-3">
+    Osszesen: {osszesen} Ft
+  </h5>
+</div>
+
       </div>
     </div>
   );

@@ -31,11 +31,12 @@ function WineCard({ bor }) {
           alt={bor.nev}
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "/easter egg3.jpg"; // tedd a public mappába
+            e.target.src = "/easter egg3.jpg";
           }}
           style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "cover" }}
         />
       </div>
+
       <Card.Body>
         <Card.Title>{bor.nev}</Card.Title>
         <p>{bor.pince_nev}</p>
@@ -45,12 +46,17 @@ function WineCard({ bor }) {
           <Button as={Link} to={`/bor/${bor.bor_id}`} variant="secondary">
             Részletek
           </Button>
+
           <Button
-            onClick={(e) => {
-              e.stopPropagation(); // ne triggerelje a Card onClick-et
-              addToCart(bor);
-            }}
             variant="primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              addToCart({
+                bor_id: bor.bor_id,
+                nev: bor.nev,
+                ar: Number(bor.ar)
+              });
+            }}
           >
             Kosárba
           </Button>
@@ -59,4 +65,5 @@ function WineCard({ bor }) {
     </Card>
   );
 }
+
 export default WineCard;

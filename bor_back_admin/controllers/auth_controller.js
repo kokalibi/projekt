@@ -9,7 +9,7 @@ const createToken =
   jwtMiddleware.createToken ||
   ((payload) => {
     const jwt = require("jsonwebtoken");
-    const JWT_SECRET = process.env.JWT_SECRET || "nagyon_titkos_fallback";
+    const JWT_SECRET = process.env.JWT_SECRET;
     const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "2h";
     return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
   });
@@ -102,9 +102,12 @@ exports.me = async (req, res) => {
     if (rows.length === 0)
       return res.status(404).json({ error: "User nem található" });
 
-    res.json({ user: rows[0] });
+    // 🔥 FONTOS FIX
+    res.set("Cache-Control", "no-store");
+    res.status(200).json(rows[0]);
   } catch (err) {
     console.error("me error:", err);
     res.status(500).json({ error: "Szerverhiba" });
   }
 };
+
