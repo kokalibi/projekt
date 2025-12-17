@@ -175,3 +175,27 @@ exports.addOrder = async (req, res) => {
     conn.release();
   }
 };
+
+// ADMIN – rendelés státusz frissítés
+// ADMIN – rendelés státusz frissítés
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { statusz_id } = req.body;
+
+    if (!statusz_id) {
+      return res.status(400).json({ error: "Hianyzo statusz_id" });
+    }
+
+    await db.query(
+      "UPDATE rendelesek SET statusz_id = ? WHERE id = ?",
+      [statusz_id, id]
+    );
+
+    res.json({ message: "Statusz frissitve" });
+  } catch (err) {
+    console.error("updateStatus error:", err);
+    res.status(500).json({ error: "Szerverhiba" });
+  }
+};
+
