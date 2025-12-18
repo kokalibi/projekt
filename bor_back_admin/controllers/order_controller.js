@@ -12,10 +12,11 @@ exports.getAllOrders = async (req, res) => {
         r.fizetesi_mod,
         r.fizetesi_statusz,
         r.letrehozva,
-        r.frissitve,
-        rs.nev AS statusz_nev
+        rs.nev AS statusz_nev,
+        c.teljes_nev AS vevo_nev
       FROM rendelesek r
       JOIN rendeles_statuszok rs ON r.statusz_id = rs.id
+      JOIN cimek c ON r.szallitasi_cim_id = c.id
       ORDER BY r.id DESC
     `);
 
@@ -25,6 +26,7 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ error: "Szerverhiba" });
   }
 };
+
 
 /**
  * ➤ EGY RENDELÉS FEJLÉC

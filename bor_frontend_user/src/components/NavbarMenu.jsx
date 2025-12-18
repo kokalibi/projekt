@@ -13,7 +13,7 @@ function NavbarMenu() {
       <Container>
         {/* Bal oldal */}
         <Navbar.Brand as={Link} to="/">
-          Bor Webshop
+          🍷DrágaBorok
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="main-nav" />

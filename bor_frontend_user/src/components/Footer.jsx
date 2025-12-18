@@ -12,7 +12,7 @@ function Footer() {
       }}
     >
       <Container>
-        <h5>Bor Webshop</h5>
+        <h5>DrágaBorok</h5>
         <p style={{ margin: 0 }}>
           © {new Date().getFullYear()} - Minden jog fenntartva.
         </p>

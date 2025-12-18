@@ -16,7 +16,7 @@ export default function Login() {
 
     try {
       const res = await API.post("/auth/login", { email, jelszo });
-      login(res.data.token, res.data.user);
+      login(res.data.accessToken, res.data.user);
       navigate("/");
     } catch (err) {
       setHiba(err.response?.data?.error || "Hiba történt");

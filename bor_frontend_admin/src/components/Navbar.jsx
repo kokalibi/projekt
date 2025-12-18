@@ -6,7 +6,7 @@ export default function AppNavbar() {
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
       <Container>
-        <Navbar.Brand><LinkContainer to="/"><Nav.Link>🍷 Bor Admin</Nav.Link></LinkContainer></Navbar.Brand>
+        <Navbar.Brand><LinkContainer to="/"><Nav.Link>🍷DrágaBorok Admin</Nav.Link></LinkContainer></Navbar.Brand>
         
         <Nav className="me-auto">
           <LinkContainer to="/"><Nav.Link>Rendelés kezelés</Nav.Link></LinkContainer>

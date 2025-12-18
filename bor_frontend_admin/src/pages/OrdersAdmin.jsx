@@ -52,7 +52,8 @@ export default function OrdersAdmin() {
           : "-"}
       </td>
 
-      <td>Vendég</td>
+      <td>{o.vevo_nev || "Vendég"}</td>
+
 
       <td>{o.vegosszeg} Ft</td>
 
