@@ -1,36 +1,68 @@
+// ================================
+//  TELJES, MŰKÖDŐ app.js
+// ================================
+
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var borokRouter = require('./routes/borok');
-var kep_upload = require('./routes/kep_feltolt');
 var adatRouter = require('./routes/adat');
-
+var uploadRouter = require('./routes/kep_feltolt');
+var ordersRouter = require('./routes/order_routes');
+var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
+var authRouter = require("./routes/auth");
+var cookieParser = require("cookie-parser");
+var adminAuthRoutes = require("./routes/admin_auth_routes");
 
 
 var app = express();
 
+// --------------------------
+// ⭐ CORS – engedélyezve Vite-nek
+// --------------------------
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174"
+    ],
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    credentials: true,
+  })
+);
+
+// --------------------------
+// Alap middleware-ek
+// --------------------------
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-const cors = require('cors');
-var corsOptions={
-    "credentials" : true,
-    origin: "http://localhost:3000"
-}
-app.use(cors(corsOptions));
+
+// --------------------------
+// Statikus fájlok (képek!)
+// --------------------------
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// --------------------------
+// Route-ok bekötése
+// --------------------------
+
 app.use('/api/borok', borokRouter);
-app.use('/api/upload', kep_upload);
 app.use('/api/adat', adatRouter);
+app.use('/api/upload', uploadRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/order-items', orderItemsRouter);
 
+// ⬇⬇⬇ Auth route-ok
+app.use("/api/auth", authRouter);
+
+app.use("/api/admin", adminAuthRoutes);
 
 module.exports = app;
