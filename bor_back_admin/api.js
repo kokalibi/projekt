@@ -1,7 +1,15 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "/api"
+const adminApi = axios.create({
+  baseURL: "/api",
 });
 
-export default API;
+adminApi.interceptors.request.use(config => {
+  const token = window.__ADMIN_TOKEN__;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default adminApi;

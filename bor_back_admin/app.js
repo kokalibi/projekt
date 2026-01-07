@@ -15,6 +15,8 @@ var ordersRouter = require('./routes/order_routes');
 var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
 var authRouter = require("./routes/auth");
 var cookieParser = require("cookie-parser");
+var adminAuthRoutes = require("./routes/admin_auth_routes");
+
 
 var app = express();
 
@@ -60,4 +62,7 @@ app.use('/api/order-items', orderItemsRouter);
 
 // ⬇⬇⬇ Auth route-ok
 app.use("/api/auth", authRouter);
+
+app.use("/api/admin", adminAuthRoutes);
+
 module.exports = app;

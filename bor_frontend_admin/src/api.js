@@ -1,7 +1,16 @@
 import axios from "axios";
 
-const api = axios.create({
+const adminApi = axios.create({
   baseURL: "/api",
 });
 
-export default api;
+adminApi.interceptors.request.use(config => {
+  // Ez a változó oldalfrissítéskor (F5) törlődik a memóriából
+  const token = window.__ADMIN_TOKEN__; 
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default adminApi;
