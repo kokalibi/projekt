@@ -1,20 +1,17 @@
-const db = require("../config/db");
+// controllers/order_items_controller.js
+const Order = require("../models/order_model");
 
 // ➤ RENDELÉS TÉTELEI
 exports.getOrderItems = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [rows] = await db.query(
-      `SELECT bor_nev, egysegar, mennyiseg
-       FROM rendeles_tetelek
-       WHERE rendeles_id = ?`,
-      [id]
-    );
+    // A modellt hívjuk meg az adatbázis kérés helyett
+    const items = await Order.getItems(id);
 
-    res.json(rows);
+    res.json(items);
   } catch (err) {
-    console.error(err);
+    console.error("getOrderItems hiba:", err);
     res.status(500).json({ error: "Szerverhiba" });
   }
 };
