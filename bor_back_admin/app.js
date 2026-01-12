@@ -16,6 +16,7 @@ var orderItemsRouter = require('./routes/rendeles_tetelek_routes');
 var authRouter = require("./routes/auth");
 var cookieParser = require("cookie-parser");
 var adminAuthRoutes = require("./routes/admin_auth_routes");
+var MessageRoutes = require("./routes/message_routes");
 
 
 var app = express();
@@ -64,5 +65,8 @@ app.use('/api/order-items', orderItemsRouter);
 app.use("/api/auth", authRouter);
 
 app.use("/api/admin", adminAuthRoutes);
+
+//message route-ok
+app.use("/api/messages", MessageRoutes);
 
 module.exports = app;

@@ -10,6 +10,7 @@ import AddBor from "./pages/AddBor";
 import ManageBor from "./pages/ManageBor";
 import BorReszletek from "./pages/BorReszletek";
 import AdminLogin from "./pages/AdminLogin";
+import ChatAdmin from "./pages/ChatAdmin";
 
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
@@ -75,6 +76,14 @@ export default function App() {
                 </AdminProtectedRoute>
               }
             />
+            <Route 
+          path="/chat" 
+          element={
+            <AdminProtectedRoute>
+              <ChatAdmin />
+            </AdminProtectedRoute>
+          } 
+        />
 
           </Routes>
         </Container>

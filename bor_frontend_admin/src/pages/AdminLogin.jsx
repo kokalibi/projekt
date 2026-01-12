@@ -12,20 +12,20 @@ export default function AdminLogin() {
   const { login } = useAdminAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await API.post("/admin/login", { email, password });
+  e.preventDefault();
+  try {
+    const res = await API.post("/admin/login", { email, password });
 
-      // Elmentjük a memóriába a tokent az API kérésekhez
-      window.__ADMIN_TOKEN__ = res.data.token; 
+    // ELMENTJÜK A SESSIONSTORAGE-BA (hogy frissítéskor megmaradjon)
+    sessionStorage.setItem("admin_token", res.data.token);
+    window.__ADMIN_TOKEN__ = res.data.token; 
 
-      // Beállítjuk a Context-et (ami frissítéskor törlődik)
-      login(res.data, res.data.token); 
-      navigate("/");
-    } catch (err) {
-      setHiba(err.response?.data?.error || "Hibás email vagy jelszó");
-    }
-  };
+    login(res.data, res.data.token); 
+    navigate("/");
+  } catch (err) {
+    setHiba(err.response?.data?.error || "Hibás email vagy jelszó");
+  }
+};
 
   return (
     <Form onSubmit={handleSubmit} style={{ maxWidth: 400 }}>
