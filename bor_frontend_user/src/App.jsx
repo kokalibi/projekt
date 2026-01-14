@@ -9,6 +9,7 @@ import WineDetails from "./pages/WineDetails";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import UserChat from "./components/UserChat";
 
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -28,8 +29,9 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            
           </Routes>
-
+          <UserChat />
           <Footer />
 
         </CartProvider>

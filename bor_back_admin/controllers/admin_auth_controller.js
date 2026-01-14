@@ -12,7 +12,11 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: "Hibás email vagy jelszó" });
     }
 
-    const token = jwt.sign({ id: admin.id, email: admin.email, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(
+  { id: admin.id, email: admin.email, role: "admin" }, 
+  process.env.JWT_ACCESS_SECRET, 
+  { expiresIn: "1d" }
+);
 
     res.cookie("admin_token", token, { httpOnly: true, sameSite: "lax", secure: false, maxAge: 24 * 60 * 60 * 1000 });
     res.json({ id: admin.id, email: admin.email, nev: admin.nev, token });

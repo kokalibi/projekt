@@ -1,16 +1,19 @@
 import axios from "axios";
 
-const adminApi = axios.create({
+const API = axios.create({
   baseURL: "/api",
+  withCredentials: true 
 });
 
-adminApi.interceptors.request.use(config => {
-  // Ez a változó oldalfrissítéskor (F5) törlődik a memóriából
-  const token = window.__ADMIN_TOKEN__; 
+// Interceptor az Admin token automatikus hozzáadásához
+API.interceptors.request.use((config) => {
+  // Megpróbáljuk változóból, ha nincs ott, akkor a tárolóból
+  const token = window.__ADMIN_TOKEN__ || sessionStorage.getItem("admin_token");
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-export default adminApi;
+export default API;

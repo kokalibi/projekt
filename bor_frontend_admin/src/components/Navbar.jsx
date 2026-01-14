@@ -12,6 +12,7 @@ export default function AppNavbar() {
           <LinkContainer to="/"><Nav.Link>Rendelés kezelés</Nav.Link></LinkContainer>
           <LinkContainer to="/add"><Nav.Link>Új bor hozzáadása</Nav.Link></LinkContainer>
           <LinkContainer to="/manage"><Nav.Link>Borok kezelése</Nav.Link></LinkContainer>
+          <LinkContainer to="/chat"><Nav.Link>Üzenetek</Nav.Link></LinkContainer>
         </Nav>
       </Container>
     </Navbar>
