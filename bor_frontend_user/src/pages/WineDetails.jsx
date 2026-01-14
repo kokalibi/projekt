@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Container, Button, Row, Col } from "react-bootstrap";
+import { Container, Button, Row, Col, Card } from "react-bootstrap";
 import API from "../api";
 import { useCart } from "../context/CartContext";
 
@@ -15,61 +15,38 @@ function WineDetails() {
     API.get(`/borok/${id}`).then((res) => setBor(res.data));
   }, [id]);
 
-  if (!bor) return <div className="container mt-5">Betöltés...</div>;
+  if (!bor) return <Container className="text-center mt-5">Betöltés...</Container>;
 
   return (
-    <Container className="mt-5 mb-5">
-      <h2 className="text-center mb-4">{bor.nev}</h2>
-
-      <Row className="align-items-start">
-
-        {/* Kép blokk */}
-        <Col md={6} className="d-flex justify-content-center mb-4">
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "500px",
-              background: "#f2f2f2",
-              padding: "20px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-          >
+    <Container className="mt-4 mb-5">
+      <Row className="g-4 align-items-center">
+        <Col xs={12} md={6} className="text-center">
+          <div className="p-3 bg-white border rounded shadow-sm">
             <img
               src={`${API_BASE}/uploads/kep/${bor.bor_id}.jpg`}
               alt={bor.nev}
-              style={{
-                width: "100%",
-                height: "auto",
-                objectFit: "contain",
-                borderRadius: "10px"
-              }}
+              className="img-fluid"
+              style={{ maxHeight: "500px", objectFit: "contain" }}
               onError={(e) => (e.target.src = "/easter egg3.jpg")}
             />
           </div>
         </Col>
-
-        {/* Részletek blokk */}
-        <Col md={6}>
-          <h4 className="mb-3">Ár: {bor.ar} Ft</h4>
-
-          <p><strong>Pince:</strong> {bor.pince_nev}</p>
-          <p><strong>Fajta:</strong> {bor.fajta_nev}</p>
-          <p><strong>Típus:</strong> {bor.tipus_nev}</p>
-          <p><strong>Évjárat:</strong> {bor.evjarat}</p>
-
-          <h5 className="mt-4">Leírás:</h5>
-          <p style={{ fontSize: "1.1rem", lineHeight: "1.6" }}>
-            {bor.leiras || "Nincs leírás."}
-          </p>
-
-          <Button
-            onClick={() => addToCart(bor)}
-            className="mt-3"
-            variant="primary"
-          >
-            Kosárba
-          </Button>
+        <Col xs={12} md={6}>
+          <div className="ps-md-4 text-center text-md-start">
+            <h2 className="display-5 fw-bold">{bor.nev}</h2>
+            <h3 className="text-primary mb-4">{bor.ar} Ft</h3>
+            <div className="bg-light p-3 rounded mb-4">
+              <p><strong>Pince:</strong> {bor.pince_nev}</p>
+              <p><strong>Fajta:</strong> {bor.fajta_nev}</p>
+              <p><strong>Típus:</strong> {bor.tipus_nev}</p>
+              <p><strong>Évjárat:</strong> {bor.evjarat}</p>
+            </div>
+            <h5>Leírás:</h5>
+            <p className="lead">{bor.leiras || "Nincs leírás."}</p>
+            <Button onClick={() => addToCart(bor)} className="w-100 py-3 mt-3" variant="primary" size="lg">
+              Kosárba teszem
+            </Button>
+          </div>
         </Col>
       </Row>
     </Container>

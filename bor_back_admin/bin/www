@@ -9,7 +9,6 @@ var app = require('../app');
 var debug = require('debug')('bor-back-admin:server');
 var http = require('http');
 
-
 /**
  * Get port from environment and store in Express.
  */
@@ -21,7 +20,48 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const server = http.createServer(app);
+
+/**
+ * Socket.io inicializálása
+ */
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    // Engedélyezzük a frontend portokat (5173 és 5174)
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+/**
+ * Socket.io eseménykezelés
+ */
+io.on("connection", (socket) => {
+  console.log("Új kliens csatlakozott:", socket.id);
+
+  // Belépés egy adott felhasználóhoz tartozó privát szobába
+  socket.on("join_room", (userId) => {
+    socket.join(`room_${userId}`);
+    console.log(`Socket ${socket.id} belépett a room_${userId} szobába`);
+  });
+
+  // bin/www socket rész
+socket.on("admin_changed_user", (data) => {
+  // Értesítjük a régi felhasználót, hogy az admin elnavigált tőle
+  if (data.oldUserId) {
+    io.to(`room_${data.oldUserId}`).emit("force_close_chat");
+  }
+});
+
+  socket.on("disconnect", () => {
+    console.log("Kliens lecsatlakozott");
+  });
+});
+
+// Elérhetővé tesszük az io-t a route-ok számára az app objektumon keresztül
+app.set("io", io);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -39,12 +79,10 @@ function normalizePort(val) {
   var port = parseInt(val, 10);
 
   if (isNaN(port)) {
-    // named pipe
     return val;
   }
 
   if (port >= 0) {
-    // port number
     return port;
   }
 
@@ -64,7 +102,6 @@ function onError(error) {
     ? 'Pipe ' + port
     : 'Port ' + port;
 
-  // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
@@ -89,11 +126,5 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
-  console.log(port);
-  console.log({
-  DB_HOST: process.env.DB_HOST,
-  DB_USER: process.env.DB_USER,
-  DB_PASSWORD: process.env.DB_PASSWORD,
-  DB_DATABASE: process.env.DB_DATABASE  ,
-});
+  console.log("Szerver fut a következő porton: " + port);
 }
