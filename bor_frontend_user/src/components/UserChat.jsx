@@ -1,26 +1,45 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, Form, Button } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import socket from "../socket";
 
 export default function UserChat() {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Alapértelmezetten zárt
   const scrollRef = useRef();
 
-  const fetchChat = useCallback(() => {
-    if (user && isOpen) {
-      API.get("/messages/my-chat").then(res => setMessages(res.data)).catch(() => {});
-    }
-  }, [user, isOpen]);
+  // FIGYELÉS: Ha megváltozik a felhasználó (pl. új login), zárjuk be az ablakot
+  useEffect(() => {
+    setIsOpen(false);
+    setMessages([]);
+  }, [user?.user_id, user?.id]); // Ha az ID változik, resetelünk
 
   useEffect(() => {
-    fetchChat();
-    const interval = setInterval(fetchChat, 4000);
-    return () => clearInterval(interval);
-  }, [fetchChat]);
+    if (user && isOpen) {
+      socket.connect();
+      socket.emit("join_room", user.user_id || user.id);
+      API.get("/messages/my-chat").then(res => setMessages(res.data));
+
+      const handleMsg = (data) => {
+        setMessages((prev) => [...prev, data]);
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      };
+
+      const handleClose = () => setIsOpen(false);
+
+      socket.on("new_message", handleMsg);
+      socket.on("force_close_chat", handleClose);
+
+      return () => {
+        socket.off("new_message", handleMsg);
+        socket.off("force_close_chat", handleClose);
+        socket.disconnect();
+      };
+    }
+  }, [user, isOpen]);
 
   const send = async (e) => {
     e.preventDefault();
@@ -28,8 +47,7 @@ export default function UserChat() {
     try {
       await API.post("/messages/send", { message: text });
       setText("");
-      fetchChat();
-    } catch (err) { console.error("Küldési hiba"); }
+    } catch (err) { console.error("Hiba"); }
   };
 
   if (!user) return null;
@@ -37,25 +55,30 @@ export default function UserChat() {
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}>
       {isOpen ? (
-        <Card className="shadow" style={{ width: "320px" }}>
-          <Card.Header className="bg-dark text-white d-flex justify-content-between">
-            Sommelier Segítség <Button size="sm" variant="outline-light" onClick={() => setIsOpen(false)}>X</Button>
+        <Card className="shadow-lg border-0" style={{ width: "320px", maxWidth: "90vw" }}>
+          <Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center">
+            <span>Segítség</span>
+            <Button size="sm" variant="outline-light" onClick={() => setIsOpen(false)}>X</Button>
           </Card.Header>
-          <Card.Body style={{ height: "300px", overflowY: "auto" }}>
+          <Card.Body className="bg-light" style={{ height: "300px", overflowY: "auto" }}>
             {messages.map((m, i) => (
               <div key={i} className={`mb-2 ${m.sender_type === 'user' ? 'text-end' : 'text-start'}`}>
-                <span className={`p-2 rounded d-inline-block ${m.sender_type === 'user' ? 'bg-primary text-white' : 'bg-light border'}`}>
+                <span className={`p-2 rounded d-inline-block shadow-sm ${m.sender_type === 'user' ? 'bg-primary text-white' : 'bg-white border'}`}>
                   {m.message}
                 </span>
               </div>
             ))}
             <div ref={scrollRef} />
           </Card.Body>
-          <Form onSubmit={send} className="p-2 border-top">
-            <Form.Control size="sm" value={text} onChange={e => setText(e.target.value)} placeholder="Üzenet..." />
+          <Form onSubmit={send} className="p-2 border-top bg-white">
+            <Form.Control size="sm" value={text} onChange={e => setText(e.target.value)} placeholder="Írjon üzenetet..." />
           </Form>
         </Card>
-      ) : <Button onClick={() => setIsOpen(true)} variant="dark" className="rounded-circle p-3 shadow">💬</Button>}
+      ) : (
+        <Button onClick={() => setIsOpen(true)} variant="dark" className="rounded-circle p-3 shadow-lg border-0">
+          💬
+        </Button>
+      )}
     </div>
   );
 }
