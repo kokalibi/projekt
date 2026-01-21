@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Container, Table, Button, Form, Row, Col, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import API from "../api";
@@ -7,76 +7,85 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
 
 function AdminBorok() {
   const [borok, setBorok] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [visible, setVisible] = useState([]);
   const [loadIndex, setLoadIndex] = useState(30);
 
+  // Szűrők állapota
   const [search, setSearch] = useState("");
   const [tipus, setTipus] = useState("");
   const [fajta, setFajta] = useState("");
   const [pince, setPince] = useState("");
   const [evjarat, setEvjarat] = useState("");
 
+  // Dropdown opciók (Egyszer töltjük le, hogy ne változzanak szűrés közben)
+  const [options, setOptions] = useState({ tipusok: [], fajtak: [], pincek: [], evjaratok: [] });
+
+  // 1. KEZDETI ADATOK: Opciók és az első adathalmaz betöltése
   useEffect(() => {
     API.get("/borok").then((res) => {
+      setOptions({
+        tipusok: [...new Set(res.data.map((b) => b.tipus_nev))],
+        fajtak: [...new Set(res.data.map((b) => b.fajta_nev))],
+        pincek: [...new Set(res.data.map((b) => b.pince_nev))],
+        evjaratok: [...new Set(res.data.map((b) => b.evjarat))],
+      });
+      // Kezdeti lista megjelenítése
       setBorok(res.data);
-      setFiltered(res.data);
       setVisible(res.data.slice(0, 30));
     });
   }, []);
 
+  // 2. BACKEND SZŰRÉS: Paraméteres lekérés
+  // A search mezőhöz egy kis késleltetést (debounce) használunk a useEffect-en belül
   useEffect(() => {
-    let f = borok;
-    if (search.trim() !== "") {
-      f = f.filter((b) => b.nev.toLowerCase().includes(search.toLowerCase()));
-    }
-    if (tipus !== "") f = f.filter((b) => b.tipus_nev === tipus);
-    if (fajta !== "") f = f.filter((b) => b.fajta_nev === fajta);
-    if (pince !== "") f = f.filter((b) => b.pince_nev === pince);
-    if (evjarat !== "") f = f.filter((b) => String(b.evjarat) === evjarat);
+    const delayDebounceFn = setTimeout(() => {
+      const params = { search, tipus, fajta, pince, evjarat };
+      
+      API.get("/borok", { params }).then((res) => {
+        setBorok(res.data);
+        setLoadIndex(30);
+        setVisible(res.data.slice(0, 30));
+      });
+    }, 400); // 400ms várakozás gépelés után
 
-    setFiltered(f);
-    setLoadIndex(30);
-    setVisible(f.slice(0, 30));
-  }, [search, tipus, fajta, pince, evjarat, borok]);
+    return () => clearTimeout(delayDebounceFn);
+  }, [search, tipus, fajta, pince, evjarat]);
 
-  const tipusok = [...new Set(borok.map((b) => b.tipus_nev))];
-  const fajták = [...new Set(borok.map((b) => b.fajta_nev))];
-  const pincék = [...new Set(borok.map((b) => b.pince_nev))];
-  const evjaratok = [...new Set(borok.map((b) => b.evjarat))];
-
+  // 3. TÖRLÉS FUNKCIÓ (Változatlan logika, de frissíti a szűrt listát)
   const deleteBor = async (id) => {
     if (!window.confirm("Biztosan törölni szeretné ezt a bort?")) return;
-    await API.delete(`/borok/${id}`);
-    const newList = borok.filter((b) => b.bor_id !== id);
-    setBorok(newList);
-    setFiltered(newList);
-    setVisible(newList.slice(0, loadIndex));
-  };
-
-  const handleScroll = () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-      loadMore();
+    try {
+      await API.delete(`/borok/${id}`);
+      // Kivesszük a helyi listából, hogy ne kelljen az egész API-t újra hívni
+      const newList = borok.filter((b) => b.bor_id !== id);
+      setBorok(newList);
+      setVisible(newList.slice(0, loadIndex));
+    } catch (err) {
+      console.error("Törlési hiba:", err);
     }
   };
 
-  const loadMore = () => {
-    if (loadIndex >= filtered.length) return;
-    const newIndex = loadIndex + 30;
-    setVisible(filtered.slice(0, newIndex));
-    setLoadIndex(newIndex);
-  };
+  // 4. INFINITE SCROLL (Görgetés kezelése)
+  const handleScroll = useCallback(() => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+      if (loadIndex < borok.length) {
+        const newIndex = loadIndex + 30;
+        setVisible(borok.slice(0, newIndex));
+        setLoadIndex(newIndex);
+      }
+    }
+  }, [loadIndex, borok.length]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  });
+  }, [handleScroll]);
 
   return (
     <Container className="my-4">
       <h2 className="mb-4 text-center text-md-start">Borok kezelése (Admin)</h2>
 
-      {/* SZŰRŐK SZEKCIÓ - Card-ba csomagolva a jobb mobil megjelenésért */}
+      {/* SZŰRŐK - Card-ba csomagolva */}
       <Card className="p-3 shadow-sm mb-4 border-0 bg-light">
         <Row className="g-2">
           <Col xs={12} md={4} lg={3}>
@@ -90,31 +99,30 @@ function AdminBorok() {
           <Col xs={6} md={2}>
             <Form.Select value={tipus} onChange={(e) => setTipus(e.target.value)}>
               <option value="">Összes típus</option>
-              {tipusok.map((t) => <option key={t}>{t}</option>)}
+              {options.tipusok.map((t) => <option key={t}>{t}</option>)}
             </Form.Select>
           </Col>
           <Col xs={6} md={2}>
             <Form.Select value={fajta} onChange={(e) => setFajta(e.target.value)}>
               <option value="">Összes fajta</option>
-              {fajták.map((f) => <option key={f}>{f}</option>)}
+              {options.fajtak.map((f) => <option key={f}>{f}</option>)}
             </Form.Select>
           </Col>
           <Col xs={6} md={2}>
             <Form.Select value={pince} onChange={(e) => setPince(e.target.value)}>
               <option value="">Összes pince</option>
-              {pincék.map((p) => <option key={p}>{p}</option>)}
+              {options.pincek.map((p) => <option key={p}>{p}</option>)}
             </Form.Select>
           </Col>
           <Col xs={6} md={2}>
             <Form.Select value={evjarat} onChange={(e) => setEvjarat(e.target.value)}>
               <option value="">Összes évjárat</option>
-              {evjaratok.map((e) => <option key={e}>{e}</option>)}
+              {options.evjaratok.map((e) => <option key={e}>{e}</option>)}
             </Form.Select>
           </Col>
         </Row>
       </Card>
 
-      {/* TÁBLÁZAT - responsive attribútummal */}
       <div className="table-responsive shadow-sm rounded">
         <Table striped bordered hover className="align-middle mb-0 bg-white">
           <thead className="table-dark">
@@ -122,7 +130,6 @@ function AdminBorok() {
               <th>Kép</th>
               <th>Név</th>
               <th className="d-none d-lg-table-cell">Típus</th>
-              <th className="d-none d-lg-table-cell">Fajta</th>
               <th className="d-none d-md-table-cell">Pince</th>
               <th>Évjárat</th>
               <th>Ár</th>
@@ -140,20 +147,12 @@ function AdminBorok() {
                         src={kepUrl}
                         alt={bor.nev}
                         onError={(e) => (e.target.src = "/easter_egg3.jpg")}
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          objectFit: "contain",
-                          backgroundColor: "#fff",
-                          borderRadius: "4px",
-                          padding: "2px"
-                        }}
+                        style={{ width: "60px", height: "60px", objectFit: "contain" }}
                       />
                     </Link>
                   </td>
                   <td className="fw-bold">{bor.nev}</td>
                   <td className="d-none d-lg-table-cell">{bor.tipus_nev}</td>
-                  <td className="d-none d-lg-table-cell">{bor.fajta_nev}</td>
                   <td className="d-none d-md-table-cell">{bor.pince_nev}</td>
                   <td>{bor.evjarat}</td>
                   <td className="text-nowrap">{bor.ar.toLocaleString()} Ft</td>
@@ -166,6 +165,7 @@ function AdminBorok() {
                       >
                         Törlés
                       </Button>
+                      {/* Itt maradhatnak az egyéb gombok, pl. Szerkesztés */}
                     </div>
                   </td>
                 </tr>
@@ -175,9 +175,8 @@ function AdminBorok() {
         </Table>
       </div>
 
-      {loadIndex < filtered.length && (
+      {loadIndex < borok.length && (
         <div className="text-center my-4">
-          <div className="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
           <span className="text-muted">További borok betöltése...</span>
         </div>
       )}
