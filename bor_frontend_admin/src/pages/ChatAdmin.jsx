@@ -10,19 +10,19 @@ export default function ChatAdmin() {
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef();
 
-  // Partnerek betöltése: megőrizzük a korábbi unread_count állapotokat
+  // 1. Partnerek betöltése: Frissíti a listát az adatbázisból
   const loadPartners = useCallback(() => {
     API.get("/messages/admin/partners")
       .then(res => setPartners(res.data))
       .catch(err => console.error("Partner lista hiba:", err));
   }, []);
 
-  // 1. KOMPONENS INDÍTÁSA: Csatlakozás és lista figyelése
+  // 2. Kapcsolódás és eseményfigyelés indításkor
   useEffect(() => {
     loadPartners();
     socket.connect();
 
-    // Figyeljük, ha új partner jelenik meg (nem kell frissíteni az oldalt)
+    // Ha új partner jelenik meg az adatbázisban, frissítjük a listát
     socket.on("update_partner_list", loadPartners);
 
     return () => {
@@ -31,37 +31,37 @@ export default function ChatAdmin() {
     };
   }, [loadPartners]);
 
-  // 2. FELHASZNÁLÓ KIVÁLASZTÁSA: Olvasottá tétel és chat betöltése
+  // 3. Felhasználó kiválasztása: Olvasottá tétel és chat betöltése
   useEffect(() => {
     // Szigorú ellenőrzés az undefined hiba elkerülésére
     if (selectedUser && selectedUser.user_id) {
       socket.emit("join_room", selectedUser.user_id);
       
-      // Adatbázis frissítése olvasottra
+      // Üzenetek olvasottá tétele a backendben
       API.put(`/messages/read/${selectedUser.user_id}`)
         .then(() => {
-          // Helyi számláló nullázása a listában
+          // Helyi számláló nullázása a listában a jobb UX érdekében
           setPartners(prev => prev.map(p => 
             p.user_id === selectedUser.user_id ? { ...p, unread_count: 0 } : p
           ));
         })
         .catch(err => console.error("Olvasottá tétel hiba:", err));
 
-      // Üzenetek lekérése
+      // Üzenetelőzmények lekérése
       API.get(`/messages/admin/${selectedUser.user_id}`)
         .then(res => setMessages(res.data));
     }
   }, [selectedUser]);
 
-  // 3. ÚJ ÜZENET ÉRKEZÉSE: Automatikus megjelenítés
+  // 4. Valós idejű üzenetek kezelése
   useEffect(() => {
     const handleMsg = (data) => {
       if (selectedUser && data.userId === selectedUser.user_id) {
         setMessages(prev => [...prev, data]);
-        // Automatikus görgetés az aljára
+        // Automatikus görgetés az aljára új üzenetnél
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
       } else if (data.sender_type === 'user') {
-        // Ha mástól jött, növeljük a piros badge számát a listában
+        // Ha mástól jön üzenet, növeljük a piros jelvényt a listában
         setPartners(prev => prev.map(p => 
           p.user_id === data.userId ? { ...p, unread_count: (p.unread_count || 0) + 1 } : p
         ));
@@ -72,6 +72,7 @@ export default function ChatAdmin() {
     return () => socket.off("new_message");
   }, [selectedUser]);
 
+  // 5. Válasz küldése az admin részéről
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser?.user_id) return;
@@ -89,9 +90,10 @@ export default function ChatAdmin() {
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-dark text-white fw-bold">Ügyfelek</Card.Header>
             <ListGroup variant="flush">
-              {partners.map(p => (
+              {partners.map((p, index) => (
                 <ListGroup.Item 
-                  key={`partner-${p.user_id}`} // Egyedi kulcs
+                  // Biztosítjuk az egyedi kulcsot akkor is, ha az ID még nem jött meg
+                  key={p.user_id ? `partner-${p.user_id}` : `temp-${index}`} 
                   action 
                   onClick={() => setSelectedUser(p)} 
                   active={selectedUser?.user_id === p.user_id}
@@ -123,14 +125,14 @@ export default function ChatAdmin() {
                 </Card.Body>
                 <Card.Footer className="bg-white">
                   <Form onSubmit={handleSend} className="d-flex gap-2">
-                    <Form.Control value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Válasz..." />
+                    <Form.Control value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Válasz írása..." />
                     <Button type="submit" variant="primary">Küldés</Button>
                   </Form>
                 </Card.Footer>
               </>
             ) : (
               <div className="h-100 d-flex align-items-center justify-content-center text-muted">
-                Válassz partnert a beszélgetéshez!
+                Válassz egy partnert a beszélgetéshez!
               </div>
             )}
           </Card>

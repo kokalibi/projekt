@@ -17,7 +17,7 @@ var authRouter = require("./routes/auth");
 var cookieParser = require("cookie-parser");
 var adminAuthRoutes = require("./routes/admin_auth_routes");
 var MessageRoutes = require("./routes/message_routes");
-
+var userRoutes = require("./routes/user_routes");
 
 var app = express();
 
@@ -48,7 +48,8 @@ app.use(cookieParser());
 // --------------------------
 // Statikus fájlok (képek!)
 // --------------------------
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/feltoltesek', express.static(path.join(__dirname, 'feltoltesek')));
+app.use('/public/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --------------------------
@@ -60,6 +61,7 @@ app.use('/api/adat', adatRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/order-items', orderItemsRouter);
+app.use("/api/user", userRoutes);
 
 // ⬇⬇⬇ Auth route-ok
 app.use("/api/auth", authRouter);
