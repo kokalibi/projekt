@@ -8,11 +8,6 @@ function NavbarMenu() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // IDŐBÉLYEG HOZZÁADVA: így frissül a kép azonnal
-  const profilKepUrl = user?.profil_kep 
-    ? `http://localhost:8080${user.profil_kep}?t=${new Date().getTime()}` 
-    : "/monkeywine.jpg";
-
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
       <Container>
@@ -28,14 +23,7 @@ function NavbarMenu() {
           <Nav className="align-items-center">
             {user ? (
               <>
-                <Nav.Link as={Link} to="/profil" className="d-flex align-items-center me-3">
-                  <Image 
-                    src={profilKepUrl} 
-                    roundedCircle 
-                    style={{ width: "30px", height: "30px", objectFit: "cover", marginRight: "8px" }}
-                    className="border border-secondary"
-                    onError={(e) => { e.target.src = "/monkeywine.jpg"; }}
-                  />
+                <Nav.Link as={Link} to="/profil" className="me-3">
                   <span className="text-white">Szia, {user.nev}!</span>
                 </Nav.Link>
                 <Button variant="outline-light" size="sm" onClick={() => { logout(); navigate("/"); }}>

@@ -20,7 +20,7 @@ const upload = multer({
 
 // Útvonalak összekötése a kontroller függvényeivel
 router.get("/me", auth, userController.getMe);
-router.put("/update", auth, upload.single("image"), userController.updateProfile);
+router.put("/update", auth, userController.updateProfile);
 router.delete("/delete", auth, userController.deleteMe);
 
 module.exports = router;
