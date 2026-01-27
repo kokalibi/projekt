@@ -8,13 +8,21 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Belépéskor beállítjuk a tokent és a felhasználót
+  /* =========================
+     BEJELENTKEZÉS
+  ========================= */
   const login = (token, userData) => {
     setAccessToken(token);
     setUser(userData);
+    // Profilkép frissítéséhez: időbélyeg hozzáadása
+    if (userData?.profil_kep) {
+      setUser(prev => ({ ...prev, profil_kep: userData.profil_kep + '?t=' + new Date().getTime() }));
+    }
   };
 
-  // Kilépéskor hívjuk a backendet is, hogy törölje a Refresh Token sütit
+  /* =========================
+     KIJELENTKEZÉS
+  ========================= */
   const logout = async () => {
     try {
       await API.post("/auth/logout");
@@ -25,34 +33,40 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const updateUser = (data) => {
-    setUser((prev) => (prev ? { ...prev, ...data } : data));
+  /* =========================
+     ACCESS TOKEN FRISSÍTÉS
+  ========================= */
+  const refreshAccessToken = async () => {
+    try {
+      const res = await API.post("/auth/refresh");
+      setAccessToken(res.data.accessToken);
+      return res.data.accessToken;
+    } catch {
+      setUser(null);
+      setAccessToken(null);
+      return null;
+    }
   };
 
-  /**
-   * AUTOMATIKUS ÚJRATÖLTÉS FRISSÍTÉSKOR
-   * Ez a rész felel azért, hogy F5 után visszakapjuk a munkamenetet
-   */
+  /* =========================
+     OLDALBETÖLTÉSKOR: BE VAN-E JELENTKEZVE?
+  ========================= */
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // 1. Megpróbálunk új Access Tokent kérni a httpOnly Refresh Cookie-val
-        const res = await API.post("/auth/refresh");
-        const token = res.data.accessToken;
+        const token = await refreshAccessToken();
+        if (!token) return;
 
-        if (token) {
-          setAccessToken(token);
-          // 2. Ha kaptunk tokent, azonnal lekérjük a user adatait is
-          const me = await API.get("/auth/me", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setUser(me.data);
-        }
-      } catch (err) {
-        // Ha nincs süti vagy lejárt, nem történik semmi, a user marad null
-        console.log("Nincs aktív munkamenet.");
+        const me = await API.get("/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setUser(me.data);
+      } catch {
+        setUser(null);
       } finally {
-        // Csak akkor engedjük renderelni az App-ot, ha lefutott az ellenőrzés
         setLoading(false);
       }
     };
@@ -60,10 +74,9 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
-  /**
-   * AXIOS INTERCEPTOR
-   * Automatikusan minden API híváshoz hozzácsapja a tokent a fejlécben
-   */
+  /* =========================
+     AXIOS INTERCEPTOR
+  ========================= */
   useEffect(() => {
     const interceptor = API.interceptors.request.use(async (config) => {
       if (accessToken) {
@@ -78,8 +91,6 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
-        setUser,
-        updateUser,
         accessToken,
         login,
         logout,
