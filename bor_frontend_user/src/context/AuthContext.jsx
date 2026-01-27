@@ -52,23 +52,29 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = await refreshAccessToken();
-        if (!token) return;
-
+  const initAuth = async () => {
+    try {
+      // Megpróbálunk új access tokent kérni a HTTP-only cookie-ban lévő refresh token segítségével
+      const res = await API.post("/auth/refresh");
+      const token = res.data.accessToken;
+      
+      if (token) {
+        setAccessToken(token);
+        // Ha van token, lekérjük a user adatait is
         const me = await API.get("/auth/me", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(me.data);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-    initAuth();
-  }, []);
+    } catch (err) {
+      console.log("Nincs aktív munkamenet");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+  initAuth();
+}, []);
 
   useEffect(() => {
     const interceptor = API.interceptors.request.use(async config => {
