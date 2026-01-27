@@ -24,6 +24,15 @@ var app = express();
 // --------------------------
 // ⭐ CORS – engedélyezve Vite-nek
 // --------------------------
+
+// --------------------------
+// Alap middleware-ek
+// --------------------------
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: [
@@ -36,14 +45,6 @@ app.use(
     credentials: true,
   })
 );
-
-// --------------------------
-// Alap middleware-ek
-// --------------------------
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 
 // --------------------------
 // Statikus fájlok (képek!)

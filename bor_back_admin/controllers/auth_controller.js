@@ -86,10 +86,10 @@ exports.register = async (req, res) => {
     const refreshToken = createRefreshToken({ user_id });
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: false, // Fejlesztés alatt false, élesben true
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true, // Biztonság: a JavaScript ne érje el
+      sameSite: "lax", // Fejlesztés alatt 'lax', hogy átmenjen a portok között
+      secure: false,   // Localhost (HTTP) esetén kötelezően false!
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 nap
     });
 
     res.json({ accessToken, user: { user_id, nev, email, cim } });
@@ -129,15 +129,25 @@ exports.refresh = async (req, res) => {
   if (!refreshToken) return res.status(401).json({ error: "Nincs refresh token" });
 
   try {
+    // 1. Ellenőrizzük a tokent
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    
+    // 2. Keressük meg a felhasználót (Figyelj a user_id-ra!)
     const user = await User.findById(decoded.user_id);
 
     if (!user) return res.status(401).json({ error: "Felhasználó nem található" });
 
-    const accessToken = createAccessToken({ user_id: user.user_id, email: user.email });
+    // 3. Új access token generálása
+    const accessToken = jwt.sign(
+      { user_id: user.user_id, email: user.email }, 
+      process.env.JWT_ACCESS_SECRET, 
+      { expiresIn: process.env.JWT_ACCESS_EXPIRES }
+    );
+
     res.json({ accessToken });
   } catch (err) {
-    res.status(403).json({ error: "Érvénytelen refresh token" });
+    console.error("Refresh hiba:", err);
+    return res.status(403).json({ error: "Érvénytelen refresh token" });
   }
 };
 

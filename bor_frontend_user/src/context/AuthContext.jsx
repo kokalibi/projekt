@@ -51,28 +51,45 @@ export function AuthProvider({ children }) {
   /* =========================
      OLDALBETÖLTÉSKOR: BE VAN-E JELENTKEZVE?
   ========================= */
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = await refreshAccessToken();
-        if (!token) return;
-
+ useEffect(() => {
+  const initAuth = async () => {
+    console.log("--- DEBUG: Auth ellenőrzés indul ---");
+    try {
+      // 1. Megpróbáljuk a frissítést
+      console.log("DEBUG: Refresh kérés küldése a következő helyre: " + API.defaults.baseURL + "/auth/refresh");
+      const res = await API.post("/auth/refresh");
+      console.log("DEBUG: Szerver válasza (Refresh):", res.data);
+      
+      const token = res.data.accessToken;
+      if (token) {
+        setAccessToken(token);
+        
+        // 2. Felhasználói adatok lekérése az új tokennel
+        console.log("DEBUG: Felhasználói adatok lekérése...");
         const me = await API.get("/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
-
+        console.log("DEBUG: Felhasználó sikeresen betöltve:", me.data);
         setUser(me.data);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    initAuth();
-  }, []);
+    } catch (err) {
+      // Itt fogjuk látni a hiba valódi okát
+      console.error("--- DEBUG: AUTH HIBA ---");
+      console.error("Státusz kód:", err.response?.status);
+      console.error("Hibaüzenet a szervertől:", err.response?.data?.error || "Nincs hibaüzenet");
+      console.error("Kérés URL-je:", err.config?.url);
+      
+      if (err.response?.status === 403) {
+        console.warn("TIPP: A 403-as hiba gyakran CORS beállítás vagy rossz baseURL miatt van!");
+      }
+      setUser(null);
+    } finally {
+      setLoading(false);
+      console.log("--- DEBUG: Auth folyamat vége ---");
+    }
+  };
+  initAuth();
+}, []);
 
   /* =========================
      AXIOS INTERCEPTOR
