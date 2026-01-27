@@ -8,6 +8,9 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /* =========================
+     BEJELENTKEZÉS
+  ========================= */
   const login = (token, userData) => {
     setAccessToken(token);
     setUser(userData);
@@ -17,6 +20,9 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /* =========================
+     KIJELENTKEZÉS
+  ========================= */
   const logout = async () => {
     try {
       await API.post("/auth/logout");
@@ -27,18 +33,9 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  // EZ KELL AZ AZONNALI KÉPFRISSÍTÉSHEZ:
-  const updateUser = (data) => {
-    setUser((prev) => {
-      if (!prev) return data;
-      // Profilkép frissítéséhez: időbélyeg hozzáadása
-      if (data.profil_kep) {
-        return { ...prev, ...data, profil_kep: data.profil_kep + '?t=' + new Date().getTime() };
-      }
-      return { ...prev, ...data };
-    });
-  };
-
+  /* =========================
+     ACCESS TOKEN FRISSÍTÉS
+  ========================= */
   const refreshAccessToken = async () => {
     try {
       const res = await API.post("/auth/refresh");
@@ -51,6 +48,9 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /* =========================
+     OLDALBETÖLTÉSKOR: BE VAN-E JELENTKEZVE?
+  ========================= */
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -58,8 +58,11 @@ export function AuthProvider({ children }) {
         if (!token) return;
 
         const me = await API.get("/auth/me", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
+
         setUser(me.data);
       } catch {
         setUser(null);
@@ -67,11 +70,15 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     };
+
     initAuth();
   }, []);
 
+  /* =========================
+     AXIOS INTERCEPTOR
+  ========================= */
   useEffect(() => {
-    const interceptor = API.interceptors.request.use(async config => {
+    const interceptor = API.interceptors.request.use(async (config) => {
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
@@ -84,8 +91,6 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
-        setUser,
-        updateUser, // Itt adjuk át
         accessToken,
         login,
         logout,
@@ -93,6 +98,7 @@ export function AuthProvider({ children }) {
         isAuthenticated: !!user
       }}
     >
+      {/* Amíg tölt az auth (loading: true), addig nem mutatjuk az oldalt, elkerülve a villanást */}
       {!loading && children}
     </AuthContext.Provider>
   );
