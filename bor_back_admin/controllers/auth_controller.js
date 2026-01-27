@@ -114,22 +114,8 @@ exports.login = async (req, res) => {
     const accessToken = createAccessToken({ user_id: user.user_id, email: user.email });
     const refreshToken = createRefreshToken({ user_id: user.user_id });
 
-    res.cookie("refreshToken", refreshToken, {
-  httpOnly: true,
-  sameSite: "lax", // 'strict' helyett lokális teszteléshez jobb a 'lax'
-  secure: false,   // localhoston (HTTP) kötelezően false, különben nem menti el
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
-
-    res.json({
-      accessToken,
-      user: {
-        user_id: user.user_id,
-        nev: user.nev,
-        email: user.email,
-        cim: user.cim,
-      },
-    });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict", secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.json({ accessToken, user: { user_id: user.user_id, nev: user.nev, email: user.email, cim: user.cim } });
   } catch (err) {
     res.status(500).json({ error: "Szerverhiba" });
   }
