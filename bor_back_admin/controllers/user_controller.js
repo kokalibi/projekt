@@ -1,37 +1,49 @@
 const User = require("../models/user_model");
 const db = require("../config/db");
+const bcrypt = require("bcryptjs");
 
-// Saját adatok lekérése
-// user_controller.js javítása
+// Felhasználói adatok lekérése (Saját profil)
 exports.getMe = async (req, res) => {
   try {
-    // Használjuk a modell findById függvényét!
-    const row = await User.findById(req.user.user_id); 
-    if (!row) return res.status(404).json({ error: "Felhasználó nem található" });
-    res.json(row);
+    const user = await User.findById(req.user.user_id);
+    if (!user) return res.status(404).json({ error: "Felhasználó nem található" });
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ error: "Hiba az adatok lekérésekor" });
+    res.status(500).json({ error: "Szerverhiba" });
   }
 };
 
-// Profil frissítése (Név és profilkép)
+// Profil adatainak frissítése (Név, Email, Jelszó, Cím)
 exports.updateProfile = async (req, res) => {
   try {
-    const { nev } = req.body;
-    const profilKep = req.file ? `/uploads/profil/${req.file.filename}` : null;
+    const { nev, email, jelszo, cim } = req.body;
+    const userId = req.user.user_id;
 
-    await User.updateProfile(req.user.user_id, nev, profilKep);
+    // 1. Alap adatok frissítése (Név, Email, Cím)
+    let query = "UPDATE users SET nev = ?, email = ?, cim = ?";
+    let params = [nev, email, cim];
+
+    // 2. Ha jelszót is küldött, titkosítjuk és hozzáadjuk a lekérdezéshez
+    if (jelszo && jelszo.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(jelszo, salt);
+      query += ", password_hash = ?";
+      params.push(hash);
+    }
+
+    query += " WHERE user_id = ?";
+    params.push(userId);
+
+    await db.query(query, params);
     
-    // Visszaküldjük az új adatokat a frontendnek
     res.json({ 
       success: true, 
       message: "Profil sikeresen frissítve",
-      profil_kep: profilKep, // Ez kell a frontend frissítéséhez
-      nev: nev
+      user: { nev, email } 
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Szerverhiba" });
+    console.error("Profil frissítési hiba:", err);
+    res.status(500).json({ error: "Szerverhiba a mentés során" });
   }
 };
 
@@ -39,8 +51,8 @@ exports.updateProfile = async (req, res) => {
 exports.deleteMe = async (req, res) => {
   try {
     await User.deleteAccount(req.user.user_id);
-    res.json({ success: true, message: "Fiók törölve" });
+    res.json({ message: "Fiók sikeresen törölve" });
   } catch (err) {
-    res.status(500).json({ error: "Hiba a törlés során" });
+    res.status(500).json({ error: "Szerverhiba" });
   }
 };
