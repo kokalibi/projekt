@@ -12,14 +12,12 @@ var http = require('http');
 /**
  * Get port from environment and store in Express.
  */
-
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3000'); // A .env-ben 8080-at találtunk [cite: 2]
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
-
 const server = http.createServer(app);
 
 /**
@@ -28,7 +26,6 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    // Engedélyezzük a frontend portokat (5173 és 5174)
     origin: ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST"],
     credentials: true
@@ -47,61 +44,40 @@ io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} belépett a room_${userId} szobába`);
   });
 
-  // bin/www socket rész
-socket.on("admin_changed_user", (data) => {
-  // Értesítjük a régi felhasználót, hogy az admin elnavigált tőle
-  if (data.oldUserId) {
-    io.to(`room_${data.oldUserId}`).emit("force_close_chat");
-  }
-});
+  socket.on("admin_changed_user", (data) => {
+    if (data.oldUserId) {
+      io.to(`room_${data.oldUserId}`).emit("force_close_chat");
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("Kliens lecsatlakozott");
   });
 });
 
-// Elérhetővé tesszük az io-t a route-ok számára az app objektumon keresztül
+// Elérhetővé tesszük az io-t a route-ok számára
 app.set("io", io);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
 /**
- * Normalize a port into a number, string, or false.
+ * Segédfüggvények (Port normalizálás, hiba kezelés)
  */
-
 function normalizePort(val) {
   var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    return val;
-  }
-
-  if (port >= 0) {
-    return port;
-  }
-
+  if (isNaN(port)) return val;
+  if (port >= 0) return port;
   return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-
 function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
+  if (error.syscall !== 'listen') throw error;
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
   switch (error.code) {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
@@ -116,15 +92,9 @@ function onError(error) {
   }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
 function onListening() {
   var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   debug('Listening on ' + bind);
-  console.log("Szerver fut a következő porton: " + port);
+  console.log("Szerver fut a következő porton: " + port); // Ezt fogod látni a terminálban 
 }

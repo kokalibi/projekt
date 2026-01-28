@@ -112,7 +112,7 @@ exports.login = async (req, res) => {
     }
 
     const accessToken = createAccessToken({ user_id: user.user_id, email: user.email });
-    const refreshToken = createRefreshToken({ user_id: user.user_id });
+    const refreshToken = createRefreshToken({ user_id: user.user_id }); // Itt is user_id legyen!
 
     res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict", secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
     res.json({ accessToken, user: { user_id: user.user_id, nev: user.nev, email: user.email, cim: user.cim } });
@@ -125,30 +125,34 @@ exports.login = async (req, res) => {
  * TOKEN FRISSÍTÉS (REFRESH)
  */
 exports.refresh = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.status(401).json({ error: "Nincs refresh token" });
+    const refreshToken = req.cookies.refreshToken;
 
-  try {
-    // 1. Ellenőrizzük a tokent
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    
-    // 2. Keressük meg a felhasználót (Figyelj a user_id-ra!)
-    const user = await User.findById(decoded.user_id);
+    if (!refreshToken) {
+        return res.status(401).json({ error: "Nincs refresh token" });
+    }
 
-    if (!user) return res.status(401).json({ error: "Felhasználó nem található" });
+    try {
+        // A .env fájlodban lévő kulcsot használjuk: refresh_secret_456
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // Fontos: a tábládban user_id van!
+        const user = await User.findById(decoded.user_id);
 
-    // 3. Új access token generálása
-    const accessToken = jwt.sign(
-      { user_id: user.user_id, email: user.email }, 
-      process.env.JWT_ACCESS_SECRET, 
-      { expiresIn: process.env.JWT_ACCESS_EXPIRES }
-    );
+        if (!user) {
+            return res.status(401).json({ error: "Felhasználó nem található" });
+        }
 
-    res.json({ accessToken });
-  } catch (err) {
-    console.error("Refresh hiba:", err);
-    return res.status(403).json({ error: "Érvénytelen refresh token" });
-  }
+        const accessToken = jwt.sign(
+            { user_id: user.user_id, email: user.email },
+            process.env.JWT_ACCESS_SECRET,
+            { expiresIn: process.env.JWT_ACCESS_EXPIRES }
+        );
+
+        res.json({ accessToken });
+    } catch (err) {
+        console.error("JWT HIBA:", err.message);
+        return res.status(403).json({ error: "Érvénytelen refresh token" });
+    }
 };
 
 /**
