@@ -3,6 +3,9 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndi
 import { useRouter } from 'expo-router';
 import API from '../api';
 
+// A .env fájlból olvassuk be az útvonalat: http://10.210.71.176:8080/public/uploads/kep
+const IMAGE_BASE_URL = process.env.EXPO_PUBLIC_IMAGE_URL;
+
 export default function WineListScreen() {
   const [borok, setBorok] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,16 +26,16 @@ export default function WineListScreen() {
     <FlatList
       data={borok}
       keyExtractor={(item) => item.bor_id.toString()}
-      numColumns={2} // Kétoszlopos elrendezés, mint egy webshopban
+      numColumns={2}
       renderItem={({ item }) => (
         <TouchableOpacity 
           style={styles.card} 
           onPress={() => router.push({ pathname: "/bor/[id]", params: { id: item.bor_id } })}
         >
-          {/* Kép megjelenítése a backendről */}
           <Image 
-            source={{ uri: `http://10.210.71.176:8080/feltoltesek/${item.kep_neve}` }} 
-            style={styles.image} 
+            source={{ uri: `${IMAGE_BASE_URL}/${item.kep_neve}` }} 
+            style={styles.image}
+            resizeMode="cover" // Így add meg, ne a style-ban!
           />
           <View style={styles.info}>
             <Text style={styles.name} numberOfLines={1}>{item.nev}</Text>
@@ -52,14 +55,17 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: '#fff',
     borderRadius: 10,
-    elevation: 3, // Árnyék Androidon
-    shadowColor: '#000', // Árnyék iOS-en
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    // A deprecated árnyékok helyett egyszerű boxShadow-t használunk weben
+    boxShadow: "0px 2px 4px rgba(0,0,0,0.1)",
     overflow: 'hidden'
   },
-  image: { width: '100%', height: 150, resizeMode: 'cover' },
+  image: { 
+    width: '100%', 
+    height: 150, 
+    backgroundColor: '#f0f0f0', // Ha ezt látod, a kép nem tölt be az URL-ről
+    display: 'flex', // Webes kényszerítés
+  },
   info: { padding: 10 },
-  name: { fontWeight: 'bold', fontSize: 14 },
+  name: { fontWeight: 'bold', fontSize: 14, color: '#333' },
   price: { color: '#722f37', marginTop: 5, fontWeight: '600' }
 });
