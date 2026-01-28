@@ -33,19 +33,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174",
-      "http://10.210.71.176:8081"
-    ],
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    // Engedélyezzük, ha nincs origin (pl. mobil app) 
+    // VAGY ha localhost-ról VAGY a hálózati IP-dről jön a kérés
+    if (!origin || origin.startsWith('http://localhost') || origin.includes('10.210.71')) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS hiba: Ez a forrás nem engedélyezett.'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // --------------------------
 // Statikus fájlok (képek!)

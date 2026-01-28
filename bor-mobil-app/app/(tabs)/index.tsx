@@ -1,80 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import API from '../api'; // Mivel egy mappában vannak az index.tsx-el
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import API from '../api';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function WineListScreen() {
+  const [borok, setBorok] = useState([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleLogin = async () => {
-    try {
-      const res = await API.post("/auth/login", { email, jelszo: password });
-      // Sikeres belépés után átirányítás a tabs (főoldal) részre
-      router.replace('/(tabs)'); 
-    } catch (err) {
-      Alert.alert("Hiba", err.response?.data?.error || "Szerverhiba");
-    }
-  };
+  useEffect(() => {
+    API.get("/borok")
+      .then(res => {
+        setBorok(res.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <ActivityIndicator size="large" style={{flex:1}} color="#722f37" />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Monkey Wine Mobil</Text>
-      
-      <TextInput 
-        style={styles.input} 
-        placeholder="Email" 
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      
-      <TextInput 
-        style={styles.input} 
-        placeholder="Jelszó" 
-        secureTextEntry 
-        value={password}
-        onChangeText={setPassword}
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Bejelentkezés</Text>
-      </TouchableOpacity>
-    </View>
+    <FlatList
+      data={borok}
+      keyExtractor={(item) => item.bor_id.toString()}
+      numColumns={2} // Kétoszlopos elrendezés, mint egy webshopban
+      renderItem={({ item }) => (
+        <TouchableOpacity 
+          style={styles.card} 
+          onPress={() => router.push({ pathname: "/bor/[id]", params: { id: item.bor_id } })}
+        >
+          {/* Kép megjelenítése a backendről */}
+          <Image 
+            source={{ uri: `http://10.210.71.176:8080/feltoltesek/${item.kep_neve}` }} 
+            style={styles.image} 
+          />
+          <View style={styles.info}>
+            <Text style={styles.name} numberOfLines={1}>{item.nev}</Text>
+            <Text style={styles.price}>{item.ar} Ft</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+      contentContainerStyle={styles.container}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    padding: 20, 
-    backgroundColor: '#fff' 
+  container: { padding: 10 },
+  card: {
+    flex: 1,
+    margin: 5,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 3, // Árnyék Androidon
+    shadowColor: '#000', // Árnyék iOS-en
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    overflow: 'hidden'
   },
-  title: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    textAlign: 'center', 
-    marginBottom: 20,
-    color: '#722f37' 
-  },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ccc', 
-    padding: 10, 
-    marginBottom: 15, 
-    borderRadius: 5 
-  },
-  button: { 
-    backgroundColor: '#722f37', 
-    padding: 15, 
-    borderRadius: 5 
-  },
-  buttonText: { 
-    color: 'white', 
-    textAlign: 'center', 
-    fontWeight: 'bold' 
-  }
+  image: { width: '100%', height: 150, resizeMode: 'cover' },
+  info: { padding: 10 },
+  name: { fontWeight: 'bold', fontSize: 14 },
+  price: { color: '#722f37', marginTop: 5, fontWeight: '600' }
 });
