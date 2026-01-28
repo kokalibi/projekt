@@ -1,10 +1,11 @@
 const db = require("../config/db");
 const Borok = require("../models/bor_model");
 
-// ➤ ÖSSZES BOR
 exports.getBorok = async (req, res) => {
   try {
-    const rows = await Borok.getAll();
+    // A query paraméterek kinyerése: pl. ?search=tokaj&tipus=száraz
+    const filters = req.query;
+    const rows = await Borok.getAll(filters);
     res.json(rows);
   } catch (err) {
     console.error("bor_controller getBorok:", err);

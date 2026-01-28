@@ -5,151 +5,87 @@ import WineCard from "../components/WineCard";
 
 function WineList() {
   const [borok, setBorok] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-
-  const [visible, setVisible] = useState(30); // egyszerre ennyit mutat
+  const [visible, setVisible] = useState(30);
   const loaderRef = useRef(null);
 
-  // szűrők állapota
+  // Szűrők
   const [search, setSearch] = useState("");
   const [tipus, setTipus] = useState("");
   const [fajta, setFajta] = useState("");
   const [pince, setPince] = useState("");
   const [evjarat, setEvjarat] = useState("");
 
-  // borok betöltése
+  // Segédállapot a dropdownok feltöltéséhez (ezt csak egyszer töltjük le szűretlenül)
+  const [filterOptions, setFilterOptions] = useState({ tipusok: [], fajtak: [], pincek: [], evjaratok: [] });
+
+  // Dropdownok feltöltése kezdetkor
   useEffect(() => {
     API.get("/borok").then((res) => {
-      setBorok(res.data);
-      setFiltered(res.data);
+      setFilterOptions({
+        tipusok: [...new Set(res.data.map(b => b.tipus_nev))],
+        fajtak: [...new Set(res.data.map(b => b.fajta_nev))],
+        pincek: [...new Set(res.data.map(b => b.pince_nev))],
+        evjaratok: [...new Set(res.data.map(b => b.evjarat))]
+      });
     });
   }, []);
 
-  // szűrés
+  // Backend szűrés meghívása
   useEffect(() => {
-    let f = borok;
-
-    if (search.trim() !== "") {
-      f = f.filter((b) =>
-        b.nev.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (tipus !== "") f = f.filter((b) => b.tipus_nev === tipus);
-    if (fajta !== "") f = f.filter((b) => b.fajta_nev === fajta);
-    if (pince !== "") f = f.filter((b) => b.pince_nev === pince);
-    if (evjarat !== "") f = f.filter((b) => String(b.evjarat) === evjarat);
-
-    setFiltered(f);
-    setVisible(30); // szűrésnél visszaállítjuk
-  }, [search, tipus, fajta, pince, evjarat, borok]);
-
-  // INFITE SCROLL OBSERVER
-  const onIntersect = useCallback(
-    (entries) => {
-      const target = entries[0];
-      if (target.isIntersecting) {
-        // ha még vannak betölthető borok
-        setVisible((prev) => {
-          if (prev < filtered.length) return prev + 30;
-          return prev;
-        });
-      }
-    },
-    [filtered.length]
-  );
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(onIntersect, {
-      root: null,
-      rootMargin: "0px",
-      threshold: 1.0,
+    const params = { search, tipus, fajta, pince, evjarat };
+    
+    // API hívás query string-gel: pl. /borok?search=valami&tipus=vörös
+    API.get("/borok", { params }).then((res) => {
+      setBorok(res.data);
+      setVisible(30);
     });
+  }, [search, tipus, fajta, pince, evjarat]);
 
+  // Infinite scroll logic (marad az eredeti, de a 'borok' hosszát nézi)
+  const onIntersect = useCallback((entries) => {
+    if (entries[0].isIntersecting) {
+      setVisible((prev) => (prev < borok.length ? prev + 30 : prev));
+    }
+  }, [borok.length]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(onIntersect, { threshold: 1.0 });
     if (loaderRef.current) observer.observe(loaderRef.current);
-
-    return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
-    };
+    return () => observer.disconnect();
   }, [onIntersect]);
-
-  // dropdown adatok
-  const tipusok = [...new Set(borok.map((b) => b.tipus_nev))];
-  const fajták = [...new Set(borok.map((b) => b.fajta_nev))];
-  const pincék = [...new Set(borok.map((b) => b.pince_nev))];
-  const evjaratok = [...new Set(borok.map((b) => b.evjarat))];
 
   return (
     <Container className="mt-4">
       <h2 className="mb-4">Borok</h2>
-
-      {/* Szűrők */}
       <Row className="mb-4 g-3">
+        <Col md={3}><Form.Control placeholder="Keresés..." value={search} onChange={e => setSearch(e.target.value)} /></Col>
         <Col md={3}>
-          <Form.Control
-            type="text"
-            placeholder="Keresés..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </Col>
-
-        <Col md={3}>
-          <Form.Select value={tipus} onChange={(e) => setTipus(e.target.value)}>
+          <Form.Select value={tipus} onChange={e => setTipus(e.target.value)}>
             <option value="">Összes típus</option>
-            {tipusok.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
+            {filterOptions.tipusok.map(t => <option key={t}>{t}</option>)}
           </Form.Select>
         </Col>
-
         <Col md={3}>
-          <Form.Select value={fajta} onChange={(e) => setFajta(e.target.value)}>
+          <Form.Select value={fajta} onChange={e => setFajta(e.target.value)}>
             <option value="">Összes fajta</option>
-            {fajták.map((f) => (
-              <option key={f}>{f}</option>
-            ))}
+            {filterOptions.fajtak.map(f => <option key={f}>{f}</option>)}
           </Form.Select>
         </Col>
-
         <Col md={3}>
-          <Form.Select value={pince} onChange={(e) => setPince(e.target.value)}>
+          <Form.Select value={pince} onChange={e => setPince(e.target.value)}>
             <option value="">Összes pince</option>
-            {pincék.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </Form.Select>
-        </Col>
-
-        <Col md={3}>
-          <Form.Select
-            value={evjarat}
-            onChange={(e) => setEvjarat(e.target.value)}
-          >
-            <option value="">Összes évjárat</option>
-            {evjaratok.map((e) => (
-              <option key={e}>{e}</option>
-            ))}
+            {filterOptions.pincek.map(p => <option key={p}>{p}</option>)}
           </Form.Select>
         </Col>
       </Row>
 
-      {/* Borok listája */}
       <Row>
-        {filtered.slice(0, visible).map((bor) => (
-          <Col key={bor.bor_id} md={4} className="mb-4">
-            <WineCard bor={bor} />
-          </Col>
+        {borok.slice(0, visible).map((bor) => (
+          <Col key={bor.bor_id} md={4} className="mb-4"><WineCard bor={bor} /></Col>
         ))}
       </Row>
-
-      {/* Loader elem – amikor látható, továbblapoz */}
-      <div
-        ref={loaderRef}
-        style={{ height: "50px", marginBottom: "50px" }}
-      />
+      <div ref={loaderRef} style={{ height: "50px" }} />
     </Container>
   );
 }
-
 export default WineList;

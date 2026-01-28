@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   /* =========================
-     BEJELENTKEZÉS
+      BEJELENTKEZÉS
   ========================= */
   const login = (token, userData) => {
     setAccessToken(token);
@@ -17,66 +17,71 @@ export function AuthProvider({ children }) {
   };
 
   /* =========================
-     KIJELENTKEZÉS
+      ADATOK FRISSÍTÉSE (Profilkép nélkül)
+  ========================= */
+  const updateUser = (data) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : data));
+  };
+
+  /* =========================
+      KIJELENTKEZÉS
   ========================= */
   const logout = async () => {
-    await API.post("/auth/logout");
+    try {
+      await API.post("/auth/logout");
+    } catch (e) {
+      console.error("Logout hiba:", e);
+    }
     setAccessToken(null);
     setUser(null);
   };
 
   /* =========================
-     ACCESS TOKEN FRISSÍTÉS
-  ========================= */
-  const refreshAccessToken = async () => {
-    try {
-      const res = await API.post("/auth/refresh");
-      setAccessToken(res.data.accessToken);
-      return res.data.accessToken;
-    } catch {
-      setUser(null);
-      setAccessToken(null);
-      return null;
-    }
-  };
-
-  /* =========================
-     OLDALBETÖLTÉSKOR: BE VAN-E JELENTKEZVE?
+      OLDALBETÖLTÉSKOR: AUTOMATIKUS BELÉPÉS
   ========================= */
   useEffect(() => {
     const initAuth = async () => {
+      console.log("--- DEBUG: Auth ellenőrzés indul ---");
       try {
-        const token = await refreshAccessToken();
-        if (!token) return;
-
-        const me = await API.get("/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        setUser(me.data);
-      } catch {
+        // 1. Megpróbálunk új tokent kérni a sütiben lévő refresh tokennel
+        const res = await API.post("/auth/refresh");
+        console.log("DEBUG: Refresh válasz:", res.data);
+        
+        const token = res.data.accessToken;
+        if (token) {
+          setAccessToken(token);
+          
+          // 2. Felhasználói adatok lekérése (SQL hiba elkerülése végett profilkép nélkül)
+          const me = await API.get("/auth/me", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log("DEBUG: Felhasználó betöltve:", me.data);
+          setUser(me.data);
+        }
+      } catch (err) {
+        console.error("--- DEBUG: AUTH HIBA ---");
+        console.error("Státusz:", err.response?.status);
+        console.error("Üzenet:", err.response?.data?.error);
         setUser(null);
+        setAccessToken(null);
       } finally {
         setLoading(false);
+        console.log("--- DEBUG: Auth folyamat vége ---");
       }
     };
-
     initAuth();
   }, []);
 
   /* =========================
-     AXIOS INTERCEPTOR
+      AXIOS INTERCEPTOR
   ========================= */
   useEffect(() => {
-    const interceptor = API.interceptors.request.use(async config => {
+    const interceptor = API.interceptors.request.use((config) => {
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       return config;
     });
-
     return () => API.interceptors.request.eject(interceptor);
   }, [accessToken]);
 
@@ -87,6 +92,7 @@ export function AuthProvider({ children }) {
         accessToken,
         login,
         logout,
+        updateUser,
         loading,
         isAuthenticated: !!user
       }}

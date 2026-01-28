@@ -2,9 +2,9 @@ const db = require("../config/db");
 
 const Borok = {};
 
-// ➤ ÖSSZES BOR
-Borok.getAll = async () => {
-  const [rows] = await db.query(`
+Borok.getAll = async (filters = {}) => {
+  const { search, tipus, fajta, pince, evjarat } = filters;
+  let query = `
     SELECT 
       b.*,
       p.nev AS pince_nev,
@@ -16,9 +16,35 @@ Borok.getAll = async () => {
     JOIN fajtak f ON b.fajta_id = f.fajta_id
     JOIN bor_tipusok t ON b.tipus_id = t.tipus_id
     JOIN evjaratok e ON b.evjarat_id = e.evjarat_id
-    ORDER BY b.bor_id DESC
-  `);
+    WHERE 1=1
+  `;
+  
+  const params = [];
 
+  if (search) {
+    query += " AND b.nev LIKE ?";
+    params.push(`%${search}%`);
+  }
+  if (tipus) {
+    query += " AND t.nev = ?";
+    params.push(tipus);
+  }
+  if (fajta) {
+    query += " AND f.nev = ?";
+    params.push(fajta);
+  }
+  if (pince) {
+    query += " AND p.nev = ?";
+    params.push(pince);
+  }
+  if (evjarat) {
+    query += " AND e.evjarat = ?";
+    params.push(evjarat);
+  }
+
+  query += " ORDER BY b.bor_id DESC";
+
+  const [rows] = await db.query(query, params);
   return rows;
 };
 
