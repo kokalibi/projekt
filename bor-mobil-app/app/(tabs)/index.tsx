@@ -3,7 +3,7 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndi
 import { useRouter } from 'expo-router';
 import API from '../api';
 
-// A .env fájlból olvassuk be az útvonalat
+// A .env fájlból olvassuk be az alap útvonalat (http://10.210.71.176:8080/public/uploads/kep)
 const IMAGE_BASE_URL = process.env.EXPO_PUBLIC_IMAGE_URL;
 
 export default function WineListScreen() {
@@ -31,13 +31,10 @@ export default function WineListScreen() {
       keyExtractor={(item) => item.bor_id.toString()}
       numColumns={2}
       renderItem={({ item }) => {
-        // --- DINAMIKUS HIBAJAVÍTÁS ---
-        // Megnézzük, melyik mezőben van a kép neve (kep_neve vagy kep)
-        const fileName = item.kep_neve || item.kep; 
+        // --- KÉP GENERÁLÁSA ID ALAPJÁN ---
+        // Mivel a fájlok neve pl. "1.jpg", az ID-t összefűzzük a kiterjesztéssel
+        const fileName = `${item.bor_id}.jpg`; 
         const fullUri = `${IMAGE_BASE_URL}/${fileName}`;
-
-        // Ha még mindig undefined-ot látsz a konzolban, nézd meg mi van az 'item'-ben:
-        // console.log("Ez jön a backendről egy borhoz:", item); 
 
         return (
           <TouchableOpacity 
@@ -47,7 +44,7 @@ export default function WineListScreen() {
             <Image 
               source={{ uri: fullUri }} 
               style={styles.image}
-              resizeMode="cover" // Fontos a webes megjelenítéshez
+              resizeMode="cover" // Webes kompatibilitás miatt prop-ként
             />
             <View style={styles.info}>
               <Text style={styles.name} numberOfLines={1}>{item.nev}</Text>
@@ -68,7 +65,7 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: '#fff',
     borderRadius: 10,
-    // Webes árnyék (a konzol hiba javítása: shadow helyett boxShadow)
+    // Webes árnyék javítás
     boxShadow: "0px 2px 4px rgba(0,0,0,0.1)", 
     overflow: 'hidden',
     borderWidth: 1,
