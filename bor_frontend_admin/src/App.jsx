@@ -41,13 +41,13 @@ export default function App() {
 
             {/* RENDELÉS RÉSZLETEK */}
             <Route
-              path="/orders/:id"
-              element={
-                <AdminProtectedRoute>
-                  <OrderDetailsAdmin />
-                </AdminProtectedRoute>
-              }
-            />
+            path="/admin/orders/:id" 
+            element={
+              <AdminProtectedRoute>
+                <OrderDetailsAdmin />
+              </AdminProtectedRoute>
+            }
+          />
 
             {/* BOR KEZELÉS */}
             <Route
