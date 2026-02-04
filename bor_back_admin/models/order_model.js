@@ -5,22 +5,43 @@ const Order = {
   getAll: async () => {
     const [rows] = await db.query(`
       SELECT 
-        r.id, r.vegosszeg, r.fizetesi_mod, r.fizetesi_statusz, r.letrehozva,
-        rs.nev AS statusz_nev, c.teljes_nev AS vevo_nev
+        r.id, 
+        r.vegosszeg, 
+        fm.megnevezes AS fizetesi_mod, -- JAVÍTÁS: A kapcsolt táblából vesszük a nevet
+        r.fizetesi_statusz, 
+        r.letrehozva,
+        rs.nev AS statusz_nev, 
+        c.teljes_nev AS vevo_nev
       FROM rendelesek r
       JOIN rendeles_statuszok rs ON r.statusz_id = rs.id
       JOIN cimek c ON r.szallitasi_cim_id = c.id
+      LEFT JOIN fizetesi_modok fm ON r.fizetesi_mod_id = fm.id -- ÚJ KAPCSOLÓDÁS
       ORDER BY r.id DESC
     `);
     return rows;
   },
 
-  // Egy rendelés alapadatai
   getById: async (id) => {
     const [rows] = await db.query(`
-      SELECT r.*, rs.nev AS statusz_nev
+      SELECT 
+        r.*, 
+        rs.nev AS statusz_nev,
+        fm.megnevezes AS fizetesi_mod_nev,
+        /* Szállítási cím adatai */
+        szall.teljes_nev AS szall_nev, 
+        szall.iranyitoszam AS szall_irsz, 
+        szall.varos AS szall_varos, 
+        szall.cim_sor1 AS szall_utca,
+        /* Számlázási cím adatai - LEFT JOIN miatt lehet NULL */
+        szaml.teljes_nev AS szaml_nev, 
+        szaml.iranyitoszam AS szaml_irsz, 
+        szaml.varos AS szaml_varos, 
+        szaml.cim_sor1 AS szaml_utca
       FROM rendelesek r
       JOIN rendeles_statuszok rs ON r.statusz_id = rs.id
+      LEFT JOIN fizetesi_modok fm ON r.fizetesi_mod_id = fm.id
+      JOIN cimek szall ON r.szallitasi_cim_id = szall.id
+      LEFT JOIN cimek szaml ON r.szamlazasi_cim_id = szaml.id -- JAVÍTÁS: LEFT JOIN
       WHERE r.id = ?
     `, [id]);
     return rows[0];
@@ -42,23 +63,24 @@ const Order = {
   },
 
   // Új rendelés leadása (Tranzakcióval)
-  create: async (data) => {
-    const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod, vegosszeg } = data;
+create: async (data) => {
+    const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod_id, vegosszeg } = data;
     const conn = await db.getConnection();
     
     try {
       await conn.beginTransaction();
 
-      // 1. Szállítási cím
+      // 1. Szállítási cím mentése
       const [szallRes] = await conn.query(
         "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
         [szallitasi_cim.teljes_nev, szallitasi_cim.email || null, szallitasi_cim.telefon || null, szallitasi_cim.orszag, szallitasi_cim.varos, szallitasi_cim.iranyitoszam, szallitasi_cim.cim_sor1, szallitasi_cim.cim_sor2 || null]
       );
       const szallitasiCimId = szallRes.insertId;
 
-      // 2. Számlázási cím
-      let szamlazasiCimId = szallitasiCimId;
-      if (szamlazasi_cim) {
+      // 2. SZÁMLÁZÁSI CÍM MENTÉSE (Ez hiányzott!)
+      let szamlazasiCimId = szallitasiCimId; // Alapértelmezett: ugyanaz, mint a szállítási
+      
+      if (szamlazasi_cim && JSON.stringify(szamlazasi_cim) !== JSON.stringify(szallitasi_cim)) {
         const [szamlRes] = await conn.query(
           "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
           [szamlazasi_cim.teljes_nev, szamlazasi_cim.email || null, szamlazasi_cim.telefon || null, szamlazasi_cim.orszag, szamlazasi_cim.varos, szamlazasi_cim.iranyitoszam, szamlazasi_cim.cim_sor1, szamlazasi_cim.cim_sor2 || null]
@@ -66,14 +88,14 @@ const Order = {
         szamlazasiCimId = szamlRes.insertId;
       }
 
-      // 3. Rendelés
+      // 3. Rendelés mentése (Most már mindkét ID-val!)
       const [orderRes] = await conn.query(
-        "INSERT INTO rendelesek (statusz_id, vegosszeg, fizetesi_mod, fizetesi_statusz, szallitasi_cim_id, szamlazasi_cim_id) VALUES (1, ?, ?, 'fuggoben', ?, ?)",
-        [vegosszeg, fizetesi_mod || null, szallitasiCimId, szamlazasiCimId]
+        "INSERT INTO rendelesek (statusz_id, vegosszeg, fizetesi_mod_id, fizetesi_statusz, szallitasi_cim_id, szamlazasi_cim_id) VALUES (1, ?, ?, 'fuggoben', ?, ?)",
+        [vegosszeg, fizetesi_mod_id, szallitasiCimId, szamlazasiCimId]
       );
       const orderId = orderRes.insertId;
 
-      // 4. Tételek
+      // 4. Tételek mentése
       for (const item of kosar) {
         await conn.query(
           "INSERT INTO rendeles_tetelek (rendeles_id, bor_id, bor_nev, egysegar, mennyiseg) VALUES (?,?,?,?,?)",

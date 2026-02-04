@@ -5,12 +5,11 @@ const nodemailer = require("nodemailer");
 
 /**
  * Nodemailer konfiguráció
- * A .env fájlban megadott adatokkal csatlakozik az SMTP szerverhez.
  */
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
-  secure: false, // 587-es port esetén false, 465 esetén true
+  secure: false, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -38,6 +37,7 @@ const createRefreshToken = (user) => {
 exports.register = async (req, res) => {
   try {
     const { nev, email, jelszo, cim } = req.body;
+    
     if (!nev || !email || !jelszo) {
       return res.status(400).json({ error: "Minden adat kötelező" });
     }
@@ -47,8 +47,16 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: "Ez az email már létezik" });
     }
 
-    const hash = await bcrypt.hash(jelszo, 10);
-    const user_id = await User.create({ nev, email, hash, cim });
+    // Jelszó titkosítása
+    const hashed = await bcrypt.hash(jelszo, 10);
+
+    // JAVÍTÁS: A modell 'password_hash' kulcsot vár
+    const user_id = await User.create({ 
+      nev, 
+      email, 
+      password_hash: hashed, 
+      cim 
+    });
 
     // --- VISSZAIGAZOLÓ EMAIL KÜLDÉSE ---
     const mailOptions = {
@@ -60,42 +68,32 @@ exports.register = async (req, res) => {
           <h1 style="color: #800000; text-align: center;">Üdvözlünk nálunk, ${nev}!</h1>
           <p>Köszönjük, hogy regisztráltál a <strong>DrágaBorok</strong> webshopba.</p>
           <p>Fiókod sikeresen elkészült a következő email címmel: <strong>${email}</strong></p>
-          <p>Mostantól böngészhetsz prémium boraink között és kényelmesen leadhatod rendeléseidet.</p>
           <br>
-          <div style="text-align: center; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
-            <p style="margin: 0; color: #555;">Ez egy automatikus visszaigazolás, kérjük ne válaszolj rá.</p>
-          </div>
-          <p style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 20px;">
-            Üdvözlettel,<br>
-            <strong>A DrágaBorok csapata</strong>
-          </p>
+          <p>Üdvözlettel,<br><strong>A DrágaBorok csapata</strong></p>
         </div>
       `,
     };
 
-    // Levélküldés aszinkron módon
     transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Nodemailer hiba:", error);
-      } else {
-        console.log("Regisztrációs email elküldve: " + info.response);
-      }
+      if (error) console.error("Nodemailer hiba:", error);
+      else console.log("Regisztrációs email elküldve: " + info.response);
     });
 
+    // Tokenek generálása az új ID-val
     const accessToken = createAccessToken({ user_id, email });
     const refreshToken = createRefreshToken({ user_id });
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Biztonság: a JavaScript ne érje el
-      sameSite: "lax", // Fejlesztés alatt 'lax', hogy átmenjen a portok között
-      secure: false,   // Localhost (HTTP) esetén kötelezően false!
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 nap
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false, 
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     res.json({ accessToken, user: { user_id, nev, email, cim } });
   } catch (err) {
     console.error("Regisztrációs hiba:", err);
-    res.status(500).json({ error: "Szerverhiba" });
+    res.status(500).json({ error: "Szerverhiba történt a regisztráció során" });
   }
 };
 
@@ -107,16 +105,27 @@ exports.login = async (req, res) => {
     const { email, jelszo } = req.body;
     const user = await User.findByEmail(email);
 
+    // Ellenőrzés: password_hash mezőt használunk az összehasonlításhoz
     if (!user || !(await bcrypt.compare(jelszo, user.password_hash))) {
       return res.status(401).json({ error: "Hibás email vagy jelszó" });
     }
 
     const accessToken = createAccessToken({ user_id: user.user_id, email: user.email });
-    const refreshToken = createRefreshToken({ user_id: user.user_id }); // Itt is user_id legyen!
+    const refreshToken = createRefreshToken({ user_id: user.user_id });
 
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict", secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
-    res.json({ accessToken, user: { user_id: user.user_id, nev: user.nev, email: user.email, cim: user.cim } });
+    res.cookie("refreshToken", refreshToken, { 
+      httpOnly: true, 
+      sameSite: "strict", 
+      secure: false, 
+      maxAge: 7 * 24 * 60 * 60 * 1000 
+    });
+    
+    res.json({ 
+      accessToken, 
+      user: { user_id: user.user_id, nev: user.nev, email: user.email, cim: user.cim } 
+    });
   } catch (err) {
+    console.error("Bejelentkezési hiba:", err);
     res.status(500).json({ error: "Szerverhiba" });
   }
 };
@@ -132,10 +141,7 @@ exports.refresh = async (req, res) => {
     }
 
     try {
-        // A .env fájlodban lévő kulcsot használjuk: refresh_secret_456
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        
-        // Fontos: a tábládban user_id van!
         const user = await User.findById(decoded.user_id);
 
         if (!user) {

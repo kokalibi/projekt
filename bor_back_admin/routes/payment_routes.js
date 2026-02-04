@@ -1,0 +1,7 @@
+const express = require("express");
+const router = express.Router();
+const paymentController = require("../controllers/payment_controller");
+
+router.get("/", paymentController.getPaymentMethods);
+
+module.exports = router;

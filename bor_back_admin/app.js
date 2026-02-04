@@ -18,6 +18,7 @@ var cookieParser = require("cookie-parser");
 var adminAuthRoutes = require("./routes/admin_auth_routes");
 var MessageRoutes = require("./routes/message_routes");
 var userRoutes = require("./routes/user_routes");
+var paymentRoutes = require('./routes/payment_routes');
 
 var app = express();
 
@@ -62,9 +63,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/borok', borokRouter);
 app.use('/api/adat', adatRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/payment-methods', paymentRoutes); // Új végpont bekötése
 app.use('/api/orders', ordersRouter);
 app.use('/api/order-items', orderItemsRouter);
 app.use("/api/user", userRoutes);
+
+
 
 // ⬇⬇⬇ Auth route-ok
 app.use("/api/auth", authRouter);
