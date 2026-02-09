@@ -37,6 +37,7 @@ const Order = {
     `, [id]);
     return rows[0];
   },
+  
 
   getItems: async (id) => {
     const [rows] = await db.query(`
