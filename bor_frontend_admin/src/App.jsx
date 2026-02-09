@@ -11,6 +11,7 @@ import ManageBor from "./pages/ManageBor";
 import BorReszletek from "./pages/BorReszletek";
 import AdminLogin from "./pages/AdminLogin";
 import ChatAdmin from "./pages/ChatAdmin";
+import AddBaseData from "./pages/AddBaseData";
 
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
@@ -55,6 +56,15 @@ export default function App() {
               element={
                 <AdminProtectedRoute>
                   <AddBor />
+                </AdminProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/base-data"
+              element={
+                <AdminProtectedRoute>
+                  <AddBaseData />
                 </AdminProtectedRoute>
               }
             />
