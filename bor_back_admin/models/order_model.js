@@ -1,22 +1,50 @@
 const db = require("../config/db");
 
 const Order = {
-  // Összes rendelés listázása adminnak
-  getAll: async () => {
-    const [rows] = await db.query(`
+  // Frissített getAll metódus, amely fogadja a szűrőket
+  getAll: async (filters = {}) => {
+    const { id, vevo, datum, fizetes } = filters;
+    
+    let sql = `
       SELECT 
         r.id, 
         r.vegosszeg, 
         fm.megnevezes AS fizetesi_mod, 
         r.letrehozva,
         rs.nev AS statusz_nev, 
+        r.statusz_id,
         c.teljes_nev AS vevo_nev
       FROM rendelesek r
       JOIN rendeles_statuszok rs ON r.statusz_id = rs.id
       JOIN cimek c ON r.szallitasi_cim_id = c.id
       LEFT JOIN fizetesi_modok fm ON r.fizetesi_mod_id = fm.id 
-      ORDER BY r.id DESC
-    `);
+      WHERE 1=1
+    `;
+    
+    const params = [];
+
+    // Dinamikus lekérdezés építése
+    if (id) {
+      sql += " AND r.id = ?";
+      params.push(id);
+    }
+    if (vevo) {
+      sql += " AND c.teljes_nev LIKE ?";
+      params.push(`%${vevo}%`);
+    }
+    if (datum) {
+      // Dátum szűrés: a LIKE segítségével az év/hónap/nap töredékekre is kereshetünk
+      sql += " AND r.letrehozva LIKE ?";
+      params.push(`%${datum}%`);
+    }
+    if (fizetes) {
+      sql += " AND fm.megnevezes LIKE ?";
+      params.push(`%${fizetes}%`);
+    }
+
+    sql += " ORDER BY r.id DESC";
+
+    const [rows] = await db.query(sql, params);
     return rows;
   },
 
@@ -37,7 +65,6 @@ const Order = {
     `, [id]);
     return rows[0];
   },
-  
 
   getItems: async (id) => {
     const [rows] = await db.query(`
@@ -55,18 +82,13 @@ const Order = {
   create: async (data) => {
     const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod_id, vegosszeg } = data;
     const conn = await db.getConnection();
-    
     try {
       await conn.beginTransaction();
-
-      // 1. Szállítási cím mentése
       const [szallRes] = await conn.query(
         "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
         [szallitasi_cim.teljes_nev, szallitasi_cim.email || '', szallitasi_cim.telefon || '', szallitasi_cim.orszag, szallitasi_cim.varos, szallitasi_cim.iranyitoszam, szallitasi_cim.cim_sor1, szallitasi_cim.cim_sor2 || null]
       );
       const szallitasiCimId = szallRes.insertId;
-
-      // 2. Számlázási cím mentése (Mindig küldünk emailt/telefont, mert NOT NULL az SQL-ben)
       let szamlazasiCimId = szallitasiCimId;
       if (szamlazasi_cim && JSON.stringify(szamlazasi_cim) !== JSON.stringify(szallitasi_cim)) {
         const [szamlRes] = await conn.query(
@@ -75,21 +97,17 @@ const Order = {
         );
         szamlazasiCimId = szamlRes.insertId;
       }
-
-      // 3. Rendelés mentése (fizetesi_statusz nélkül, mert nincs a tábládban)
       const [orderRes] = await conn.query(
         "INSERT INTO rendelesek (statusz_id, vegosszeg, fizetesi_mod_id, szallitasi_cim_id, szamlazasi_cim_id) VALUES (1, ?, ?, ?, ?)",
         [vegosszeg, fizetesi_mod_id, szallitasiCimId, szamlazasiCimId]
       );
       const orderId = orderRes.insertId;
-
       for (const item of kosar) {
         await conn.query(
           "INSERT INTO rendeles_tetelek (rendeles_id, bor_id, bor_nev, egysegar, mennyiseg) VALUES (?,?,?,?,?)",
           [orderId, item.bor_id, item.bor_nev, item.egysegar, item.mennyiseg]
         );
       }
-
       await conn.commit();
       return { orderId, vegosszeg };
     } catch (err) {

@@ -129,7 +129,8 @@ export default function Checkout() {
         bor_nev: item.nev,
         egysegar: Number(item.ar),
         mennyiseg: Number(item.mennyiseg || 1)
-      }))
+      })),
+      vegosszeg: osszesen
     };
 
     try {
@@ -144,6 +145,7 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
   return (
     <div className="container mt-4">
       <h1>Rendelés</h1>
@@ -158,33 +160,33 @@ export default function Checkout() {
               <h5 className="mb-3">Szállítási adatok</h5>
               <div className="mb-2">
                 <label className="form-label">Teljes név *</label>
-                <input className="form-control" name="teljes_nev" value={form.teljes_nev} onChange={onChange} />
+                <input required className="form-control" name="teljes_nev" value={form.teljes_nev} onChange={onChange} />
               </div>
               <div className="mb-2">
-                <label className="form-label">Email cím</label>
-                <input className="form-control" name="email" type="email" value={form.email} onChange={onChange} />
+                <label className="form-label">Email cím *</label>
+                <input required className="form-control" name="email" type="email" value={form.email} onChange={onChange} />
               </div>
               <div className="mb-2">
-                <label className="form-label">Telefonszám</label>
-                <input className="form-control" name="telefon" value={form.telefon} onChange={onChange} />
+                <label className="form-label">Telefonszám *</label>
+                <input required className="form-control" name="telefon" value={form.telefon} onChange={onChange} />
               </div>
               <div className="row">
                 <div className="col-md-6 mb-2">
                   <label className="form-label">Ország *</label>
-                  <input className="form-control" name="orszag" value={form.orszag} onChange={onChange} />
+                  <input required className="form-control" name="orszag" value={form.orszag} onChange={onChange} />
                 </div>
                 <div className="col-md-6 mb-2">
                   <label className="form-label">Város *</label>
-                  <input className="form-control" name="varos" value={form.varos} onChange={onChange} />
+                  <input required className="form-control" name="varos" value={form.varos} onChange={onChange} />
                 </div>
               </div>
               <div className="mb-2">
                 <label className="form-label">Irányítószám *</label>
-                <input className="form-control" name="iranyitoszam" value={form.iranyitoszam} onChange={onChange} />
+                <input required className="form-control" name="iranyitoszam" value={form.iranyitoszam} onChange={onChange} />
               </div>
               <div className="mb-2">
                 <label className="form-label">Cím (utca, házszám) *</label>
-                <input className="form-control" name="cim_sor1" value={form.cim_sor1} onChange={onChange} />
+                <input required className="form-control" name="cim_sor1" value={form.cim_sor1} onChange={onChange} />
               </div>
               <div className="mb-2">
                 <label className="form-label">Kiegészítő cím (emelet, ajtó)</label>
@@ -212,21 +214,21 @@ export default function Checkout() {
                   <h5 className="mb-3">Számlázási adatok</h5>
                   <div className="mb-2">
                     <label className="form-label">Számlázási név *</label>
-                    <input className="form-control" name="teljes_nev" value={szamlazasiForm.teljes_nev} onChange={onSzamlazasiChange} />
+                    <input required className="form-control" name="teljes_nev" value={szamlazasiForm.teljes_nev} onChange={onSzamlazasiChange} />
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-2">
                       <label className="form-label">Város *</label>
-                      <input className="form-control" name="varos" value={szamlazasiForm.varos} onChange={onSzamlazasiChange} />
+                      <input required className="form-control" name="varos" value={szamlazasiForm.varos} onChange={onSzamlazasiChange} />
                     </div>
                     <div className="col-md-6 mb-2">
                       <label className="form-label">Irányítószám *</label>
-                      <input className="form-control" name="iranyitoszam" value={szamlazasiForm.iranyitoszam} onChange={onSzamlazasiChange} />
+                      <input required className="form-control" name="iranyitoszam" value={szamlazasiForm.iranyitoszam} onChange={onSzamlazasiChange} />
                     </div>
                   </div>
                   <div className="mb-2">
                     <label className="form-label">Cím (utca, házszám) *</label>
-                    <input className="form-control" name="cim_sor1" value={szamlazasiForm.cim_sor1} onChange={onSzamlazasiChange} />
+                    <input required className="form-control" name="cim_sor1" value={szamlazasiForm.cim_sor1} onChange={onSzamlazasiChange} />
                   </div>
                 </div>
               )}
@@ -253,29 +255,64 @@ export default function Checkout() {
               ))}
             </div>
 
-            <button className="btn btn-success w-100 py-2 mb-5" disabled={loading}>
+            <button className="btn btn-success w-100 py-2 mb-5" disabled={loading || cart.length === 0}>
               {loading ? "Küldés..." : "Rendelés leadása"}
             </button>
           </form>
         </div>
 
-        {/* KOSÁR ÖSSZESÍTŐ */}
+        {/* KOSÁR ÖSSZESÍTŐ + SZERKESZTŐ FUNKCIÓK */}
         <div className="col-md-4">
           <div className="card p-3 shadow-sm sticky-top" style={{ top: "20px" }}>
-            <h4>Kosár</h4>
-            {cart.map(item => (
-              <div key={item.bor_id} className="border-bottom py-2">
-                <div className="d-flex justify-content-between">
-                  <strong className="text-truncate" style={{maxWidth: "150px"}}>{item.nev}</strong>
-                  <span className="fw-bold">{(item.ar * item.mennyiseg).toLocaleString()} Ft</span>
+            <h4 className="border-bottom pb-2">Kosár</h4>
+            {cart.length === 0 ? (
+              <p className="text-muted mt-2">A kosarad üres.</p>
+            ) : (
+              <>
+                {cart.map(item => (
+                  <div key={item.bor_id} className="border-bottom py-3">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <strong className="text-truncate" style={{maxWidth: "150px"}} title={item.nev}>
+                        {item.nev}
+                      </strong>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-link text-danger p-0"
+                        style={{textDecoration: 'none'}}
+                        onClick={() => removeFromCart(item.bor_id)}
+                      >
+                        Törlés
+                      </button>
+                    </div>
+                    
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div className="d-flex align-items-center gap-2 border rounded px-1" style={{background: '#f8f9fa'}}>
+                        <button 
+                          type="button" 
+                          className="btn btn-sm p-0 px-2 fw-bold"
+                          onClick={() => updateQuantity(item.bor_id, item.mennyiseg - 1)}
+                        >
+                          -
+                        </button>
+                        <span className="small fw-bold">{item.mennyiseg} db</span>
+                        <button 
+                          type="button" 
+                          className="btn btn-sm p-0 px-2 fw-bold"
+                          onClick={() => updateQuantity(item.bor_id, item.mennyiseg + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="fw-bold">{(item.ar * item.mennyiseg).toLocaleString()} Ft</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="mt-3 d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Összesen:</h5>
+                  <h5 className="text-primary mb-0">{osszesen.toLocaleString()} Ft</h5>
                 </div>
-                <div className="small text-muted">{item.mennyiseg} db</div>
-              </div>
-            ))}
-            <div className="mt-3 d-flex justify-content-between">
-              <h5>Összesen:</h5>
-              <h5 className="text-primary">{osszesen.toLocaleString()} Ft</h5>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
