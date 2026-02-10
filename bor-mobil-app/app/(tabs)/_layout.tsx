@@ -1,17 +1,19 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Ez az import gyakran hiányzik
-import { useCart } from '../../context/CartContext'; // A kosár adatokhoz
+import { Ionicons } from '@expo/vector-icons';
+import { useCart } from '../../context/CartContext';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
-  const { itemCount } = useCart(); // Lekérjük a kosárban lévő tételek számát
+  const { itemCount } = useCart();
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#722f37', // Borvörös aktív szín
         tabBarInactiveTintColor: 'gray',
+        headerStyle: { backgroundColor: '#fff' },
+        headerTitleStyle: { fontWeight: 'bold', color: '#333' },
       }}>
       
       {/* Borlista fül */}
@@ -25,7 +27,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Kosár fül jelvénnyel (Badge) */}
+      {/* Kosár fül jelvénnyel */}
       <Tabs.Screen
         name="cart"
         options={{
@@ -43,13 +45,13 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Felfedezés fül */}
+      {/* Profil fül (A felfedezés helyett) */}
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Felfedezés',
+          title: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
@@ -62,16 +64,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -6,
     top: -3,
-    backgroundColor: 'red',
+    backgroundColor: '#722f37',
     borderRadius: 9,
     width: 18,
     height: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'white',
   },
   badgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
 });

@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import API from '.././api';
 import { useCart } from '../../context/CartContext';
 
-// A .env fájlból olvassuk az útvonalat
+// A .env fájlból olvassuk az útvonalat (pl. http://192.168.x.x:8080/public/uploads/kep)
 const IMAGE_BASE_URL = process.env.EXPO_PUBLIC_IMAGE_URL;
 
 export default function WineDetailScreen() {
@@ -15,7 +15,7 @@ export default function WineDetailScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    // Egy adott bor adatainak lekérése
+    // Egy adott bor adatainak lekérése az ID alapján
     API.get(`/borok/${id}`)
       .then(res => {
         setBor(res.data);
@@ -28,20 +28,27 @@ export default function WineDetailScreen() {
   }, [id]);
 
   if (loading) return <ActivityIndicator size="large" style={{flex:1}} color="#722f37" />;
-  if (!bor) return <View style={styles.container}><Text>A termék nem található.</Text></View>;
+  if (!bor) return <View style={styles.container}><Text style={{ textAlign: 'center', marginTop: 50 }}>A termék nem található.</Text></View>;
+
+  /**
+   * MÓDOSÍTOTT KÉP ELÉRÉS:
+   * Mivel a képek neve az ID-val egyezik meg, így fűzzük össze.
+   * Példa: http://.../public/uploads/kep/1.jpg
+   */
+  const fullImageUri = `${IMAGE_BASE_URL}/${bor.bor_id}.jpg`;
 
   return (
     <ScrollView style={styles.container}>
-      {/* Nagy kép megjelenítése a .env-ben megadott mappából */}
+      {/* Bor képe az ID alapján betöltve */}
       <Image 
-        source={{ uri: `${IMAGE_BASE_URL}/${bor.kep_neve}` }} 
+        source={{ uri: fullImageUri }} 
         style={styles.image}
-        resizeMode="contain" // A webes hiba elkerülése érdekében prop-ként
+        resizeMode="contain"
       />
       
       <View style={styles.content}>
         <Text style={styles.title}>{bor.nev}</Text>
-        <Text style={styles.price}>{bor.ar.toLocaleString()} Ft</Text>
+        <Text style={styles.price}>{Number(bor.ar).toLocaleString()} Ft</Text>
         
         <View style={styles.divider} />
         
@@ -72,7 +79,8 @@ const styles = StyleSheet.create({
   image: { 
     width: '100%', 
     height: 350, 
-    backgroundColor: '#f9f9f9' 
+    backgroundColor: '#f9f9f9',
+    marginTop: 10
   },
   content: { padding: 20 },
   title: { fontSize: 26, fontWeight: 'bold', color: '#333' },
