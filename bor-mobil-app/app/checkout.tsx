@@ -10,19 +10,19 @@ import {
   ActivityIndicator,
   Switch
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import API from './api';
+import { useAuth } from '../context/AuthContext'; //
+import { useCart } from '../context/CartContext'; //
+import { useRouter } from 'expo-router'; //
+import { Ionicons } from '@expo/vector-icons'; //
+import API from './api'; //
 
 export default function CheckoutScreen() {
-  const { user } = useAuth();
-  const { cart, clearCart, totalAmount } = useCart();
-  const router = useRouter();
+  const { user } = useAuth(); //
+  const { cart, clearCart, totalAmount } = useCart(); //
+  const router = useRouter(); //
 
   /* =======================
-     ŰRLAP ÁLLAPOTOK
+      ŰRLAP ÁLLAPOTOK
   ======================= */
   const [form, setForm] = useState({
     teljes_nev: "",
@@ -47,18 +47,18 @@ export default function CheckoutScreen() {
   const [azonosCim, setAzonosCim] = useState(true);
 
   /* =======================
-     FIZETÉSI MÓD ÁLLAPOTOK
+      FIZETÉSI MÓD ÁLLAPOTOK
   ======================= */
   const [fizetesiModok, setFizetesiModok] = useState([]);
   const [valasztottModId, setValasztottModId] = useState(null);
 
   /* =======================
-     UI ÁLLAPOTOK
+      UI ÁLLAPOTOK
   ======================= */
   const [loading, setLoading] = useState(false);
 
   /* =======================
-     ADATOK BETÖLTÉSE
+      ADATOK BETÖLTÉSE
   ======================= */
   useEffect(() => {
     // Fizetési módok lekérése a backendről
@@ -81,7 +81,7 @@ export default function CheckoutScreen() {
   }, [user]);
 
   /* =======================
-     RENDELÉS LEADÁSA
+      RENDELÉS LEADÁSA
   ======================= */
   const submitOrder = async () => {
     if (cart.length === 0) {
@@ -116,14 +116,15 @@ export default function CheckoutScreen() {
 
     try {
       setLoading(true);
-      const res = await API.post("/orders", payload);
+      const res = await API.post("/orders", payload); //
       
       Alert.alert("Sikeres rendelés!", `Rendelésszám: #${res.data.rendeles_id}`, [
         { 
           text: "OK", 
           onPress: async () => {
-            await clearCart();
-            router.replace('/(tabs)');
+            // RENDELÉS UTÁNI MÓDOSÍTÁSOK:
+            await clearCart(); // 1. Kosár ürítése
+            router.replace('/(tabs)'); // 2. Visszairányítás a borok böngészéséhez
           } 
         }
       ]);

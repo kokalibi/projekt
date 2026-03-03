@@ -1,267 +1,116 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  Alert, 
-  ActivityIndicator 
-} from 'react-native';
-
-
-// --- SZIMULÁLT INTERFÉSZEK A FORDÍTÁSHOZ ---
-const AuthContext = createContext({
-  user: { nev: 'Teszt Felhasználó', email: 'teszt@email.hu', cim: 'Budapest, Fő utca 1.' },
-  logout: async () => {},
-  isAuthenticated: true
-});
-const useAuth = () => useContext(AuthContext);
-
-const useRouter = () => ({
-  replace: (path: string) => console.log("Navigáció ide:", path),
-});
-
-// Szimulált Ionicons
-const Ionicons = ({ name, size, color }: any) => (
-  <Text style={{ fontSize: size, color: color }}>●</Text>
-);
-
-const API = {
-  put: async (url: string, data: any) => ({ data: { success: true } })
-};
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import API from '../api';
 
 export default function ProfileScreen() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Profil adatok állapotai
-  const [formData, setFormData] = useState({
-    nev: '',
-    email: '',
-    cim: '',
-    jelszo: ''
-  });
-  
+  const [formData, setFormData] = useState({ nev: '', email: '', cim: '' });
   const [saving, setSaving] = useState(false);
 
-  // Adatok betöltése a kontextusból
   useEffect(() => {
     if (user) {
       setFormData({
         nev: user.nev || '',
         email: user.email || '',
         cim: user.cim || '',
-        jelszo: '' // Jelszót biztonsági okokból nem töltünk be előre
       });
     }
   }, [user]);
 
-  // Mentés folyamata
+  // Adatok mentése (csak bejelentkezve)
   const handleUpdate = async () => {
-    if (!formData.nev || !formData.email) {
-      Alert.alert("Hiba", "A név és az email kötelező mező!");
-      return;
-    }
-
+    setSaving(true);
     try {
-      setSaving(true);
-      // Meghívjuk a szerveren lévő profil frissítés végpontot
-      const res = await API.put("/users/profile", formData);
-      
-      if (res.data.success) {
-        Alert.alert("Siker", "A profilod adatai frissültek!");
-      }
+      await API.put("/user/update", formData);
+      Alert.alert("Siker", "Adataidat frissítettük!");
     } catch (err) {
-      console.error("Profil frissítési hiba:", err);
-      Alert.alert("Hiba", "Nem sikerült menteni a módosításokat.");
+      Alert.alert("Hiba", "Nem sikerült a mentés.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Kijelentkezés folyamata
-  const handleLogout = async () => {
-    Alert.alert(
-      "Kijelentkezés",
-      "Biztosan ki szeretnél jelentkezni?",
-      [
-        { text: "Mégse", style: "cancel" } as any,
-        { 
-          text: "Kijelentkezés", 
-          onPress: async () => {
-            await logout();
-            router.replace('/'); // Vissza a bejelentkezéshez
-          },
-          style: "destructive"
-        } as any
-      ]
-    );
-  };
+  if (authLoading) return <ActivityIndicator size="large" color="#722f37" style={{flex: 1}} />;
 
-  // Ha nincs bejelentkezve, ajánljuk fel a belépést
+  // --- 1. ESET: NINCS BEJELENTKEZVE ---
   if (!isAuthenticated) {
     return (
-      <View style={styles.centered}>
-        <Ionicons name="lock-closed" size={64} color="#ccc" />
-        <Text style={styles.notLoggedText}>A profil megtekintéséhez be kell jelentkezned.</Text>
-        <TouchableOpacity 
-          style={styles.loginBtn} 
-          onPress={() => router.replace('/')}
-        >
-          <Text style={styles.loginBtnText}>Bejelentkezés</Text>
+      <View style={styles.centerContainer}>
+        <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+        <Text style={styles.title}>Profil eléréséhez jelentkezz be</Text>
+        
+        <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+          <Text style={styles.buttonText}>Bejelentkezés</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.registerLink} onPress={() => router.push('/register')}>
+          <Text style={styles.registerText}>Még nincs fiókod? Regisztráció</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  // --- 2. ESET: BE VAN JELENTKEZVE ---
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.avatarCircle}>
-          <Ionicons name="person" size={50} color="#fff" />
-        </View>
-        <Text style={styles.userName}>{user?.nev}</Text>
-        <Text style={styles.userEmail}>{user?.email}</Text>
+        <Text style={styles.welcome}>Szia, {user?.nev}!</Text>
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.sectionTitle}>Profil adatok szerkesztése</Text>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Név</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.nev}
-            onChangeText={(v) => setFormData({...formData, nev: v})}
-            placeholder="Teljes név"
-          />
-        </View>
+      <View style={styles.card}>
+        <Text style={styles.label}>Név</Text>
+        <TextInput 
+          style={styles.input} 
+          value={formData.nev} 
+          onChangeText={(t) => setFormData({...formData, nev: t})} 
+        />
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email cím</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.email}
-            onChangeText={(v) => setFormData({...formData, email: v})}
-            placeholder="Email cím"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+        <Text style={styles.label}>Email</Text>
+        <TextInput 
+          style={[styles.input, {backgroundColor: '#eee'}]} 
+          value={formData.email} 
+          editable={false} 
+        />
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Szállítási cím</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={formData.cim}
-            onChangeText={(v) => setFormData({...formData, cim: v})}
-            placeholder="Irányítószám, Város, Utca..."
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        <Text style={styles.label}>Szállítási cím</Text>
+        <TextInput 
+          style={styles.input} 
+          value={formData.cim} 
+          multiline
+          onChangeText={(t) => setFormData({...formData, cim: t})} 
+        />
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Új jelszó (Hagyd üresen, ha nem változik)</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.jelszo}
-            onChangeText={(v) => setFormData({...formData, jelszo: v})}
-            placeholder="Új jelszó"
-            secureTextEntry
-          />
-        </View>
+        <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={saving}>
+          {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Mentés</Text>}
+        </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.saveBtn, saving && { opacity: 0.7 }]} 
-          onPress={handleUpdate}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="save-outline" size={20} color="#fff" />
-              <Text style={styles.saveBtnText}>Adatok mentése</Text>
-            </View>
-          )}
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <Text style={styles.logoutText}>Kijelentkezés</Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color="#722f37" />
-        <Text style={styles.logoutBtnText}>Kijelentkezés</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  content: { padding: 20, paddingBottom: 40 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  header: { alignItems: 'center', marginBottom: 30 },
-  avatarCircle: { 
-    width: 100, 
-    height: 100, 
-    borderRadius: 50, 
-    backgroundColor: '#722f37', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    marginBottom: 15,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4
-  },
-  userName: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  userEmail: { fontSize: 16, color: '#666' },
-  formCard: { 
-    backgroundColor: '#fff', 
-    borderRadius: 15, 
-    padding: 20, 
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2
-  },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 20, color: '#722f37' },
-  inputGroup: { marginBottom: 15 },
-  label: { fontSize: 14, color: '#888', marginBottom: 5, fontWeight: '600' },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ddd', 
-    borderRadius: 8, 
-    padding: 12, 
-    fontSize: 16,
-    backgroundColor: '#fafafa'
-  },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  saveBtn: { 
-    backgroundColor: '#722f37', 
-    padding: 15, 
-    borderRadius: 8, 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    marginTop: 10
-  },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
-  logoutBtn: { 
-    marginTop: 30, 
-    padding: 15, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: '#722f37', 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    alignItems: 'center'
-  },
-  logoutBtnText: { color: '#722f37', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
-  notLoggedText: { fontSize: 16, color: '#666', textAlign: 'center', marginVertical: 20 },
-  loginBtn: { backgroundColor: '#722f37', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 25 },
-  loginBtnText: { color: '#fff', fontWeight: 'bold' }
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  card: { backgroundColor: '#fff', padding: 20, margin: 15, borderRadius: 10, elevation: 3 },
+  title: { fontSize: 18, marginVertical: 20, color: '#555', textAlign: 'center' },
+  label: { fontWeight: 'bold', marginBottom: 5, color: '#722f37' },
+  input: { borderWidth: 1, borderColor: '#ddd', padding: 10, borderRadius: 5, marginBottom: 15 },
+  loginButton: { backgroundColor: '#722f37', padding: 15, borderRadius: 5, width: '100%', alignItems: 'center' },
+  saveButton: { backgroundColor: '#28a745', padding: 15, borderRadius: 5, marginTop: 10, alignItems: 'center' },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  registerLink: { marginTop: 20 },
+  registerText: { color: '#007bff' },
+  logoutButton: { marginTop: 20, alignItems: 'center' },
+  logoutText: { color: '#dc3545' },
+  header: { padding: 20, alignItems: 'center' },
+  welcome: { fontSize: 22, fontWeight: 'bold' }
 });
