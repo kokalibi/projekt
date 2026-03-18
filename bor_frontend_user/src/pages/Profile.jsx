@@ -18,7 +18,7 @@ export default function Profile() {
       setFormData({
         nev: res.data.nev || "",
         email: res.data.email || "",
-        jelszo: "", // Biztonsági okokból sosem küldjük vissza a jelszót
+        jelszo: "", 
         cim: res.data.cim || ""
       });
     });
@@ -33,10 +33,9 @@ export default function Profile() {
     try {
       const res = await API.put("/user/update", formData);
       if (res.data.success) {
-        // Frissítjük a globális AuthContext-et is az új névvel és emaillel
         updateUser({ nev: formData.nev, email: formData.email });
         setMsg({ text: "Adatok sikeresen frissítve!", type: "success" });
-        setFormData(prev => ({ ...prev, jelszo: "" })); // Jelszó mező ürítése mentés után
+        setFormData(prev => ({ ...prev, jelszo: "" })); 
       }
     } catch (err) {
       setMsg({ text: "Hiba történt a mentés során.", type: "danger" });
@@ -51,11 +50,12 @@ export default function Profile() {
   };
 
   return (
-    <Container className="mt-5" style={{ maxWidth: "600px" }}>
+    /* JAVÍTÁS: mt-5 helyett py-3, így közelebb kerül a Navbar-hoz, de marad rugalmas távolság */
+    <Container className="py-3" style={{ maxWidth: "600px" }}>
       <Card className="shadow border-0 rounded-4">
-        <div className="bg-primary p-4 text-center text-white rounded-top-4">
-          <div className="fs-1">⚙️</div>
-          <h4 className="mt-2">Fiók beállítások</h4>
+        <div className="bg-primary p-3 text-center text-white rounded-top-4">
+          <div className="fs-2">⚙️</div>
+          <h4 className="mt-1">Fiók beállítások</h4>
         </div>
 
         <Card.Body className="p-4">
@@ -63,28 +63,28 @@ export default function Profile() {
 
           <Form onSubmit={handleUpdate}>
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Név</Form.Label>
+              <Form.Label className="fw-bold small">Név</Form.Label>
               <Form.Control name="nev" value={formData.nev} onChange={handleChange} required />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Email cím</Form.Label>
+              <Form.Label className="fw-bold small">Email cím</Form.Label>
               <Form.Control name="email" type="email" value={formData.email} onChange={handleChange} required />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Új jelszó</Form.Label>
+              <Form.Label className="fw-bold small">Új jelszó</Form.Label>
               <Form.Control 
                 name="jelszo" 
                 type="password" 
-                placeholder="Csak akkor töltsd ki, ha módosítani akarod" 
+                placeholder="Csak módosítás esetén töltsd ki" 
                 value={formData.jelszo} 
                 onChange={handleChange} 
               />
             </Form.Group>
 
             <Form.Group className="mb-4">
-              <Form.Label className="fw-bold">Szállítási cím</Form.Label>
+              <Form.Label className="fw-bold small">Szállítási cím</Form.Label>
               <Form.Control 
                 name="cim" 
                 as="textarea" 
@@ -100,8 +100,8 @@ export default function Profile() {
             </Button>
           </Form>
 
-          <hr className="my-4" />
-          <Button variant="link" className="w-100 text-danger text-decoration-none" onClick={handleDelete}>
+          <hr className="my-3" />
+          <Button variant="link" className="w-100 text-danger text-decoration-none small" onClick={handleDelete}>
             Fiók végleges törlése
           </Button>
         </Card.Body>
