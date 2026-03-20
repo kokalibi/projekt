@@ -4,3 +4,32 @@
   object-fit: contain;
   background: rgb(255, 255, 255);
 }
+.carousel-img-container {
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.carousel-img {
+    max-height: 100%;
+    width: auto !important; /* Ne nyújtsa szét a képet */
+    object-fit: contain;
+}
+
+/* A statikus felirat stílusa a kép alatt */
+.carousel-caption-static {
+    width: 100%;
+    min-height: 80px;
+}
+
+/* Eltüntetjük az eredeti Bootstrap abszolút pozicionált caption-t, ha véletlen maradna */
+.carousel-caption {
+    display: none !important;
+}
+
+/* A Carousel nyilait feljebb toljuk, hogy a képen legyenek, ne a szövegen */
+.carousel-control-prev, .carousel-control-next {
+    height: 400px; /* Csak a kép magasságáig érjenek */
+}

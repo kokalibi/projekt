@@ -42,6 +42,10 @@ html, body, #root {
   padding: 2em;
 }
 
+.card.chat-card {
+  padding: 0 !important;
+}
+
 .read-the-docs {
   color: #888;
 }
