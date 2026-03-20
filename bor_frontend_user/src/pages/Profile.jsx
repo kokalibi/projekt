@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom"; // Navigációhoz
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
 
 export default function Profile() {
   const { logout, updateUser } = useAuth();
+  const navigate = useNavigate(); // Hook példányosítása
   const [msg, setMsg] = useState(null);
   const [formData, setFormData] = useState({
     nev: "",
@@ -18,7 +20,7 @@ export default function Profile() {
       setFormData({
         nev: res.data.nev || "",
         email: res.data.email || "",
-        jelszo: "", 
+        jelszo: "",
         cim: res.data.cim || ""
       });
     });
@@ -35,7 +37,7 @@ export default function Profile() {
       if (res.data.success) {
         updateUser({ nev: formData.nev, email: formData.email });
         setMsg({ text: "Adatok sikeresen frissítve!", type: "success" });
-        setFormData(prev => ({ ...prev, jelszo: "" })); 
+        setFormData(prev => ({ ...prev, jelszo: "" }));
       }
     } catch (err) {
       setMsg({ text: "Hiba történt a mentés során.", type: "danger" });
@@ -50,15 +52,14 @@ export default function Profile() {
   };
 
   return (
-    /* JAVÍTÁS: mt-5 helyett py-3, így közelebb kerül a Navbar-hoz, de marad rugalmas távolság */
     <Container className="py-3" style={{ maxWidth: "600px" }}>
-      <Card className="shadow border-0 rounded-4">
-        <div className="bg-primary p-3 text-center text-white rounded-top-4">
-          <div className="fs-2">⚙️</div>
-          <h4 className="mt-1">Fiók beállítások</h4>
+      <Card className="chat-card shadow-lg border-0" style={{ borderRadius: "15px", overflow: "hidden" }}>
+        <div className="bg-primary p-4 text-center text-white">
+          <div className="fs-1">⚙️</div>
+          <h4 className="mt-2">Fiók beállítások</h4>
         </div>
 
-        <Card.Body className="p-4">
+        <Card.Body className="p-4 bg-white">
           {msg && <Alert variant={msg.type}>{msg.text}</Alert>}
 
           <Form onSubmit={handleUpdate}>
@@ -95,10 +96,19 @@ export default function Profile() {
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100 py-2 fw-bold shadow-sm">
+            <Button variant="primary" type="submit" className="w-100 py-2 fw-bold shadow-sm mb-3">
               Módosítások mentése
             </Button>
           </Form>
+
+          {/* ÚJ FUNKCIÓ: Gomb a rendeléstörténethez */}
+          <Button 
+            variant="outline-dark" 
+            className="w-100 py-2 fw-bold shadow-sm mb-2"
+            onClick={() => navigate("/rendeleseim")}
+          >
+            📦 Korábbi rendeléseim
+          </Button>
 
           <hr className="my-3" />
           <Button variant="link" className="w-100 text-danger text-decoration-none small" onClick={handleDelete}>

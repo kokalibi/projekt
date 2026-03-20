@@ -53,32 +53,35 @@ export default function UserChat() {
   if (!user) return null;
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}>
-      {isOpen ? (
-        <Card className="shadow-lg border-0" style={{ width: "320px", maxWidth: "90vw" }}>
-          <Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center">
-            <span>Segítség</span>
-            <Button size="sm" variant="outline-light" onClick={() => setIsOpen(false)}>X</Button>
-          </Card.Header>
-          <Card.Body className="bg-light" style={{ height: "300px", overflowY: "auto" }}>
-            {messages.map((m, i) => (
-              <div key={i} className={`mb-2 ${m.sender_type === 'user' ? 'text-end' : 'text-start'}`}>
-                <span className={`p-2 rounded d-inline-block shadow-sm ${m.sender_type === 'user' ? 'bg-primary text-white' : 'bg-white border'}`}>
-                  {m.message}
-                </span>
-              </div>
-            ))}
-            <div ref={scrollRef} />
-          </Card.Body>
-          <Form onSubmit={send} className="p-2 border-top bg-white">
-            <Form.Control size="sm" value={text} onChange={e => setText(e.target.value)} placeholder="Írjon üzenetet..." />
-          </Form>
-        </Card>
-      ) : (
-        <Button onClick={() => setIsOpen(true)} variant="dark" className="rounded-circle p-3 shadow-lg border-0">
-          💬
-        </Button>
-      )}
-    </div>
-  );
+  <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}>
+    {isOpen ? (
+      /* Hozzáadtuk a 'chat-card' osztályt */
+      <Card className="chat-card shadow-lg border-0" style={{ width: "320px", maxWidth: "90vw", borderRadius: "10px", overflow: "hidden" }}>
+        <Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center border-0">
+          <span>Segítség</span>
+          <Button size="sm" variant="outline-light" onClick={() => setIsOpen(false)}>X</Button>
+        </Card.Header>
+        
+        <Card.Body className="bg-light" style={{ height: "300px", overflowY: "auto", padding: "15px" }}>
+          {messages.map((m, i) => (
+            <div key={i} className={`mb-2 ${m.sender_type === 'user' ? 'text-end' : 'text-start'}`}>
+              <span className={`p-2 px-3 rounded d-inline-block ${m.sender_type === 'user' ? 'bg-primary text-white' : 'bg-white text-dark shadow-sm'}`}>
+                {m.message}
+              </span>
+            </div>
+          ))}
+          <div ref={scrollRef} />
+        </Card.Body>
+
+        <Form onSubmit={send} className="p-2 border-top bg-white">
+          <Form.Control size="sm" value={text} onChange={e => setText(e.target.value)} placeholder="Írjon üzenetet..." />
+        </Form>
+      </Card>
+    ) : (
+      <Button onClick={() => setIsOpen(true)} variant="dark" className="rounded-circle p-3 shadow-lg border-0">
+        💬
+      </Button>
+    )}
+  </div>
+);
 }
