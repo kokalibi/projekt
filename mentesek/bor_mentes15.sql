@@ -16,6 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `adminok`
+--
+
+DROP TABLE IF EXISTS `adminok`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `adminok` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nev` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `jelszo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `letrehozva` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `adminok`
+--
+
+LOCK TABLES `adminok` WRITE;
+/*!40000 ALTER TABLE `adminok` DISABLE KEYS */;
+INSERT INTO `adminok` VALUES (1,'Karakurta Gunigunda','gunigunda@gmail.com','$2b$10$2GkKct.QG6TYFbJmOg9nXeMDQ.aC441mp9lkrPQsRUco.rK1QFuMa','2026-01-07 08:14:10');
+/*!40000 ALTER TABLE `adminok` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `bor_tipusok`
 --
 
@@ -24,10 +52,10 @@ DROP TABLE IF EXISTS `bor_tipusok`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bor_tipusok` (
   `tipus_id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(50) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `nev` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   PRIMARY KEY (`tipus_id`),
   UNIQUE KEY `nev` (`nev`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,11 +77,11 @@ DROP TABLE IF EXISTS `borok`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `borok` (
   `bor_id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `nev` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   `evjarat_id` int NOT NULL,
   `alkohol_fok` decimal(4,2) NOT NULL,
   `ar` int NOT NULL,
-  `leiras` text COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `leiras` text CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   `pince_id` int NOT NULL,
   `fajta_id` int NOT NULL,
   `tipus_id` int NOT NULL,
@@ -67,7 +95,7 @@ CREATE TABLE `borok` (
   CONSTRAINT `borok_ibfk_2` FOREIGN KEY (`fajta_id`) REFERENCES `fajtak` (`fajta_id`),
   CONSTRAINT `borok_ibfk_3` FOREIGN KEY (`tipus_id`) REFERENCES `bor_tipusok` (`tipus_id`),
   CONSTRAINT `borok_ibfk_4` FOREIGN KEY (`evjarat_id`) REFERENCES `evjaratok` (`evjarat_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=575 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=577 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -89,16 +117,16 @@ DROP TABLE IF EXISTS `cimek`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cimek` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `teljes_nev` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
-  `telefon` varchar(30) COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
-  `orszag` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `varos` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `iranyitoszam` varchar(20) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `cim_sor1` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `cim_sor2` varchar(255) COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
+  `teljes_nev` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `email` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `telefon` varchar(30) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `orszag` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `varos` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `iranyitoszam` int NOT NULL,
+  `cim_sor1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `cim_sor2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -107,7 +135,7 @@ CREATE TABLE `cimek` (
 
 LOCK TABLES `cimek` WRITE;
 /*!40000 ALTER TABLE `cimek` DISABLE KEYS */;
-INSERT INTO `cimek` VALUES (1,'asd','asd@asd.asd','112312312','Magyarorszag','asd','2131','asd','asdsadasd'),(2,'asd','asd@asd.asd','112312312','Magyarorszag','asd','2131','asd','asdsadasd'),(3,'asd','asd@asd.asd',NULL,'Magyarorszag','asd','1234','asd',NULL),(4,'asd','asd@asd.asd',NULL,'Magyarorszag','asd','1234','asd',NULL),(5,'asdasd','asd2@asd2.asd',NULL,'Magyarorszag','asdasdasda','65432','asdad',NULL),(6,'asdasd','asd2@asd2.asd',NULL,'Magyarorszag','asdasdasda','65432','asdad',NULL),(7,'jfg','dfx','243424','Magyarorszag','terhbe','6565','gnmhjiohgfhj',NULL),(8,'jfg','dfx','243424','Magyarorszag','terhbe','6565','gnmhjiohgfhj',NULL);
+INSERT INTO `cimek` VALUES (1,'asd','asd@asd.asd','112312312','Magyarorszag','asd',2131,'asd','asdsadasd'),(2,'asd','asd@asd.asd','112312312','Magyarorszag','asd',2131,'asd','asdsadasd'),(3,'asd','asd@asd.asd','11111','Magyarorszag','asd',1234,'asd',NULL),(4,'asd','asd@asd.asd','11111','Magyarorszag','asd',1234,'asd',NULL),(5,'asdasd','asd2@asd2.asd','11111','Magyarorszag','asdasdasda',65432,'asdad',NULL),(6,'asdasd','asd2@asd2.asd','111111','Magyarorszag','asdasdasda',65432,'asdad',NULL),(7,'jfg','dfx','243424','Magyarorszag','terhbe',6565,'gnmhjiohgfhj',NULL),(8,'jfg','dfx','243424','Magyarorszag','terhbe',6565,'gnmhjiohgfhj',NULL),(9,'asd','asd@asd.asd','243424','Magyarorszag','asd',1234,'asd','adsasd'),(10,'asd','asd@asd.asd','243424','Magyarorszag','asd',1234,'asd','adsasd'),(11,'asd','asd@asd.asd','243424','Magyarorszag','asdasdasda',65432,'asd','adsasd'),(12,'asd','asd@asd.asd','243424','Magyarorszag','asdasdasda',65432,'asd','adsasd'),(13,'asd','asd@asd.asd','243424','Magyarorszag','terhbe',6565,'asd','adsasd'),(14,'asd','asd@asd.asd','243424','Magyarorszag','terhbe',6565,'asd','adsasd'),(15,'aa','aa@aa.aa','111111','Magyarorszag','terhbe',65432,'aa','adsasd'),(16,'aa','aa@aa.aa','111111','Magyarorszag','terhbe',65432,'aa','adsasd'),(17,'tututu','tututu@tututu.com','243424','Magyarorszag','terhbe',6565,'gnmhjiohgfhj',NULL),(18,'tututu','tututu@tututu.com','243424','Magyarorszag','terhbe',6565,'gnmhjiohgfhj',NULL),(19,'gg','gg@gg.gg','453421','Magyarorszag','terhbe',6565,'gg',NULL),(20,'gg','gg@gg.gg','243424','Magyarorszag','asdasdasda',346,'gg','adsasd'),(21,'gg','gg@gg.gg','76466','Magyarorszag','rgew',65432,'gg','adsasd'),(22,'gg','gg@gg.gg','76466','Magyarorszag','asd',65432,'gg','adsasd'),(23,'gg','gg@gg.gg','243424','Magyarorszag','asdasdasda',346,'gg','adsasd'),(25,'gg','gg@gg.gg','243424','Magyarorszag','terhbe',346,'gg','adsasd');
 /*!40000 ALTER TABLE `cimek` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -123,7 +151,7 @@ CREATE TABLE `evjaratok` (
   `evjarat` year NOT NULL,
   PRIMARY KEY (`evjarat_id`),
   UNIQUE KEY `evjarat` (`evjarat`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,9 +174,10 @@ DROP TABLE IF EXISTS `fajtak`;
 CREATE TABLE `fajtak` (
   `fajta_id` int NOT NULL AUTO_INCREMENT,
   `nev` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `szin` varchar(50) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  PRIMARY KEY (`fajta_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+  `szin` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  PRIMARY KEY (`fajta_id`),
+  UNIQUE KEY `nev` (`nev`)
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,6 +191,62 @@ INSERT INTO `fajtak` VALUES (1,'Cabernet Sauvignon','vörös'),(2,'Merlot','vör
 UNLOCK TABLES;
 
 --
+-- Table structure for table `fizetesi_modok`
+--
+
+DROP TABLE IF EXISTS `fizetesi_modok`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `fizetesi_modok` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nev` varchar(50) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `megnevezes` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `aktiv` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fizetesi_modok`
+--
+
+LOCK TABLES `fizetesi_modok` WRITE;
+/*!40000 ALTER TABLE `fizetesi_modok` DISABLE KEYS */;
+INSERT INTO `fizetesi_modok` VALUES (1,'utanvet','Utánvét (Fizetés a futárnál)',1),(2,'bankkartya','Online Bankkártya (Stripe)',1),(3,'utalas','Banki átutalás',1);
+/*!40000 ALTER TABLE `fizetesi_modok` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `messages`
+--
+
+DROP TABLE IF EXISTS `messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `messages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `sender_type` enum('user','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_read` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `messages`
+--
+
+LOCK TABLES `messages` WRITE;
+/*!40000 ALTER TABLE `messages` DISABLE KEYS */;
+INSERT INTO `messages` VALUES (1,6,'user','asd','2026-01-12 07:24:09',1),(2,6,'user','asd','2026-01-12 07:26:52',1),(3,6,'user','asd','2026-01-12 07:29:55',1),(4,6,'user','asd','2026-01-12 07:34:44',1),(5,6,'user','asd','2026-01-12 08:09:31',1),(6,6,'admin','bsdsdf','2026-01-12 08:43:19',0),(7,6,'admin','asdfaf','2026-01-12 08:43:37',0),(8,6,'user','egfwgd','2026-01-12 08:43:54',1),(9,6,'admin','asd','2026-01-12 08:48:09',0),(10,6,'user','aefeagf','2026-01-12 08:51:34',1),(11,6,'admin','asdafedger','2026-01-12 08:51:39',0),(12,6,'user','tzkztgvh','2026-01-12 08:51:48',1),(13,7,'user','dsa','2026-01-12 08:52:53',1),(14,7,'admin','dsa','2026-01-12 08:52:57',0),(15,7,'user','asd','2026-01-13 10:16:17',1),(16,7,'admin','asd','2026-01-13 10:16:24',0),(17,8,'user','adsgsdgsr','2026-01-13 10:16:56',1),(18,8,'admin','zmgfnd','2026-01-13 10:17:00',0),(19,8,'user','adsasdf','2026-01-14 07:21:26',1),(20,6,'user','adfasgfags','2026-01-14 07:22:15',1),(21,7,'user','asdfghjkl','2026-01-14 07:25:22',1),(22,6,'user','vzggshjvd','2026-01-14 07:25:37',1),(23,8,'user','asd','2026-01-14 08:43:17',1),(24,8,'admin','asdasd','2026-01-14 08:46:13',0),(25,8,'user','asdasd','2026-01-14 08:46:29',1),(26,8,'admin','asdasd','2026-01-14 08:46:35',0),(27,8,'user','asdasd','2026-01-14 08:46:40',1),(28,8,'admin','asdasd','2026-01-14 08:46:44',0),(29,8,'user','asdasda','2026-01-14 08:50:54',1),(30,8,'admin','asdasdas','2026-01-14 08:51:03',0),(31,8,'user','gfhjk','2026-01-14 08:51:16',1),(32,8,'user','ghjenkf','2026-01-14 08:51:26',1),(33,8,'user','asdasd','2026-01-14 08:53:12',1),(34,8,'user','qweqweq','2026-01-14 08:55:00',1),(35,8,'user','trhhtr','2026-01-14 08:55:07',1),(36,8,'user','rzjj','2026-01-14 08:55:36',1),(37,8,'user','atesh','2026-01-14 08:57:54',1),(38,6,'user','asd','2026-01-14 09:04:24',1),(39,6,'user','asd','2026-01-14 09:04:52',1),(40,8,'user','asdasdasdas','2026-01-14 09:05:16',1),(41,8,'admin','gcnfnm','2026-01-14 09:05:29',0),(42,8,'user','tdjjndm','2026-01-14 09:05:33',1),(43,8,'user','trjrfd','2026-01-14 09:05:43',1),(44,6,'user','sdfghjk','2026-01-14 09:06:01',1),(45,6,'admin','dsfghjk','2026-01-14 09:06:08',0),(46,9,'user','hgvj','2026-01-14 09:06:44',1),(47,5,'user','asd','2026-01-14 09:16:52',1),(48,10,'user','ggg','2026-01-14 09:21:53',1),(49,10,'admin','ggg','2026-01-14 09:22:01',0),(50,6,'user','asdsada','2026-01-14 09:24:48',1),(51,10,'user','asdasdasd','2026-01-14 09:32:33',1),(52,10,'user','asdasdasadads','2026-01-14 09:32:52',1),(53,10,'user','asdasdas','2026-01-14 09:33:01',1),(54,10,'user','asda','2026-01-14 09:33:14',1),(55,8,'user','rghehr','2026-01-14 09:33:28',1),(56,8,'user','asdsd','2026-01-14 09:33:34',1),(57,8,'user','ads','2026-01-14 09:33:37',1),(58,6,'user','adsdasdasasd','2026-01-14 09:36:18',1),(59,6,'user','gnfgj','2026-01-14 09:36:47',1),(60,6,'user','rgerh','2026-01-14 09:37:39',1),(61,6,'user','hztr','2026-01-14 09:43:11',1),(62,6,'user','hhh','2026-01-14 09:43:27',1),(63,6,'user','jjj','2026-01-14 09:43:36',1),(64,6,'admin','jjjj','2026-01-14 09:43:42',0),(65,8,'user','zg','2026-01-14 09:44:01',1),(66,8,'user','hhh','2026-01-14 09:44:09',1),(67,8,'user','ctzgjk,loh','2026-01-14 09:59:05',1),(68,8,'admin','hjvj','2026-01-14 09:59:13',0),(69,8,'user','qwe12e','2026-01-14 10:05:52',1),(70,8,'user','wg4','2026-01-14 10:08:31',1),(71,8,'user','wgr','2026-01-14 10:08:45',1),(72,8,'user','wrge','2026-01-14 10:08:50',1),(73,8,'user','afefaf','2026-01-14 10:09:01',1),(74,8,'user','whew','2026-01-14 10:12:49',1),(75,8,'user','asda','2026-01-14 10:13:04',1),(76,8,'user','asdas','2026-01-14 10:13:11',1),(77,9,'user','vgu','2026-01-14 10:14:45',1),(78,9,'user','dfhg','2026-01-14 10:16:46',1),(79,9,'user','dndt','2026-01-14 10:16:54',1),(80,9,'user','ewg','2026-01-14 10:22:41',1),(81,9,'user','wgeg','2026-01-14 10:22:49',1),(82,9,'user','asda','2026-01-14 10:23:54',1),(83,9,'user','gf','2026-01-14 10:24:12',1),(84,9,'user','asfdaf','2026-01-14 10:25:28',1),(85,9,'user','asd','2026-01-14 10:35:27',1),(86,9,'user','asd','2026-01-14 10:35:56',1),(87,9,'user','hert','2026-01-14 10:36:01',1),(88,9,'user','gw','2026-01-14 10:36:12',1),(89,9,'user','wge','2026-01-14 10:36:45',1),(90,9,'user','q3f3','2026-01-14 10:36:51',1),(91,9,'admin','qfgw','2026-01-14 10:36:58',0),(92,9,'user','erherh','2026-01-14 10:40:58',1),(93,9,'user','asd','2026-01-14 10:45:54',1),(94,9,'user','asfaegv','2026-01-14 10:46:53',1),(95,5,'user','ztr','2026-01-14 10:47:11',1),(96,5,'admin','rh','2026-01-14 10:47:23',0),(97,9,'user','zkulk','2026-01-14 10:47:35',1),(98,9,'user','zjtr','2026-01-14 10:47:39',1),(99,9,'user','oijuu','2026-01-14 10:47:50',1),(100,9,'admin','z','2026-01-14 10:47:58',0),(101,11,'user','hihihiha','2026-01-21 11:38:44',1),(102,11,'admin','yes','2026-01-21 11:38:51',0),(103,11,'user','asd','2026-01-21 11:39:31',1),(104,6,'user','asd','2026-01-28 07:09:08',1),(105,6,'user','asd','2026-01-28 07:37:33',1);
+/*!40000 ALTER TABLE `messages` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `orszagok`
 --
 
@@ -170,10 +255,10 @@ DROP TABLE IF EXISTS `orszagok`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orszagok` (
   `orszag_id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `nev` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   PRIMARY KEY (`orszag_id`),
   UNIQUE KEY `nev` (`nev`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -195,17 +280,17 @@ DROP TABLE IF EXISTS `pincek`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pincek` (
   `pince_id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(150) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `telepules` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `cim` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `telefon` varchar(30) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `weboldal` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `nev` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `telepules` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `cim` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `telefon` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `weboldal` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   `orszag_id` int NOT NULL,
   PRIMARY KEY (`pince_id`),
   KEY `pincek_ibfk_1` (`orszag_id`),
   CONSTRAINT `pincek_ibfk_1` FOREIGN KEY (`orszag_id`) REFERENCES `orszagok` (`orszag_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -227,7 +312,7 @@ DROP TABLE IF EXISTS `rendeles_statuszok`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `rendeles_statuszok` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(50) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `nev` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -253,7 +338,7 @@ CREATE TABLE `rendeles_tetelek` (
   `id` int NOT NULL AUTO_INCREMENT,
   `rendeles_id` int NOT NULL,
   `bor_id` int NOT NULL,
-  `bor_nev` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `bor_nev` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   `egysegar` decimal(10,2) NOT NULL,
   `mennyiseg` int NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
@@ -261,7 +346,7 @@ CREATE TABLE `rendeles_tetelek` (
   KEY `bor_id` (`bor_id`),
   CONSTRAINT `rendeles_tetelek_ibfk_1` FOREIGN KEY (`rendeles_id`) REFERENCES `rendelesek` (`id`) ON DELETE CASCADE,
   CONSTRAINT `rendeles_tetelek_ibfk_2` FOREIGN KEY (`bor_id`) REFERENCES `borok` (`bor_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,7 +355,7 @@ CREATE TABLE `rendeles_tetelek` (
 
 LOCK TABLES `rendeles_tetelek` WRITE;
 /*!40000 ALTER TABLE `rendeles_tetelek` DISABLE KEYS */;
-INSERT INTO `rendeles_tetelek` VALUES (1,1,545,'Krug Grande Cuvée',89990.00,1),(2,2,549,'Moët & Chandon Impérial Brut',19990.00,54),(3,3,550,'Dom Pérignon Vintage',99990.00,1),(4,4,549,'Moët & Chandon Impérial Brut',19990.00,1),(5,4,548,'Szepsy Pezsgő Brut',9990.00,1);
+INSERT INTO `rendeles_tetelek` VALUES (1,1,545,'Krug Grande Cuvée',89990.00,1),(2,2,549,'Moët & Chandon Impérial Brut',19990.00,54),(3,3,550,'Dom Pérignon Vintage',99990.00,1),(4,4,549,'Moët & Chandon Impérial Brut',19990.00,1),(5,4,548,'Szepsy Pezsgő Brut',9990.00,1),(6,5,544,'Bollinger Special Cuvée Brut',25990.00,1),(7,6,545,'Krug Grande Cuvée',89990.00,1),(8,7,543,'Hungaria Extra Dry',2990.00,1),(9,8,550,'Dom Pérignon Vintage',99990.00,1),(10,9,550,'Dom Pérignon Vintage',99990.00,1),(15,14,540,'Catena Zapata Rosado',6490.00,1),(16,15,545,'Krug Grande Cuvée',89990.00,2);
 /*!40000 ALTER TABLE `rendeles_tetelek` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -285,8 +370,7 @@ CREATE TABLE `rendelesek` (
   `id` int NOT NULL AUTO_INCREMENT,
   `statusz_id` int NOT NULL DEFAULT '1',
   `vegosszeg` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `fizetesi_mod` varchar(50) COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
-  `fizetesi_statusz` enum('fuggoben','fizetve','sikertelen') COLLATE utf8mb4_hungarian_ci DEFAULT 'fuggoben',
+  `fizetesi_mod_id` int DEFAULT NULL,
   `szallitasi_cim_id` int NOT NULL,
   `szamlazasi_cim_id` int DEFAULT NULL,
   `letrehozva` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -294,11 +378,11 @@ CREATE TABLE `rendelesek` (
   PRIMARY KEY (`id`),
   KEY `statusz_id` (`statusz_id`),
   KEY `szallitasi_cim_id` (`szallitasi_cim_id`),
-  KEY `szamlazasi_cim_id` (`szamlazasi_cim_id`),
+  KEY `fk_rendelesek_fizetesi_mod` (`fizetesi_mod_id`),
+  CONSTRAINT `fk_rendelesek_fizetesi_mod` FOREIGN KEY (`fizetesi_mod_id`) REFERENCES `fizetesi_modok` (`id`),
   CONSTRAINT `rendelesek_ibfk_1` FOREIGN KEY (`statusz_id`) REFERENCES `rendeles_statuszok` (`id`),
-  CONSTRAINT `rendelesek_ibfk_2` FOREIGN KEY (`szallitasi_cim_id`) REFERENCES `cimek` (`id`),
-  CONSTRAINT `rendelesek_ibfk_3` FOREIGN KEY (`szamlazasi_cim_id`) REFERENCES `cimek` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+  CONSTRAINT `rendelesek_ibfk_2` FOREIGN KEY (`szallitasi_cim_id`) REFERENCES `cimek` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -307,7 +391,7 @@ CREATE TABLE `rendelesek` (
 
 LOCK TABLES `rendelesek` WRITE;
 /*!40000 ALTER TABLE `rendelesek` DISABLE KEYS */;
-INSERT INTO `rendelesek` VALUES (1,1,89990.00,'utanvet','fuggoben',1,2,'2025-12-15 10:52:46','2025-12-15 10:52:46'),(2,1,1079460.00,'utanvet','fuggoben',3,4,'2025-12-15 11:10:32','2025-12-15 11:10:32'),(3,1,99990.00,'utanvet','fuggoben',5,6,'2025-12-15 11:11:35','2025-12-15 11:11:35'),(4,1,29980.00,'utanvet','fuggoben',7,8,'2025-12-15 11:12:00','2025-12-15 11:12:00');
+INSERT INTO `rendelesek` VALUES (1,4,89990.00,1,1,2,'2025-12-15 10:52:46','2026-02-03 09:23:29'),(2,4,1079460.00,1,3,4,'2025-12-15 11:10:32','2026-02-03 09:23:29'),(3,4,99990.00,1,5,6,'2025-12-15 11:11:35','2026-02-03 09:23:29'),(4,4,29980.00,1,7,8,'2025-12-15 11:12:00','2026-02-03 09:23:29'),(5,2,25990.00,1,9,10,'2025-12-15 12:44:11','2026-02-03 09:23:29'),(6,4,89990.00,1,11,12,'2025-12-18 12:31:36','2026-02-03 09:23:29'),(7,1,2990.00,1,13,14,'2026-01-14 08:27:48','2026-02-03 09:23:29'),(8,4,99990.00,1,15,16,'2026-01-21 12:37:26','2026-02-03 09:23:29'),(9,1,99990.00,1,17,18,'2026-01-28 10:09:56','2026-02-03 09:23:29'),(14,1,6490.00,1,23,23,'2026-02-03 10:33:41','2026-02-04 08:20:00'),(15,1,179980.00,3,25,25,'2026-02-04 09:44:36','2026-02-09 08:15:59');
 /*!40000 ALTER TABLE `rendelesek` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -321,7 +405,7 @@ DROP TABLE IF EXISTS `szamlak`;
 CREATE TABLE `szamlak` (
   `id` int NOT NULL AUTO_INCREMENT,
   `rendeles_id` int NOT NULL,
-  `szamlaszam` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `szamlaszam` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
   `letrehozva` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `szamlaszam` (`szamlaszam`),
@@ -348,14 +432,14 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `user_id` int NOT NULL AUTO_INCREMENT,
-  `nev` varchar(100) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `email` varchar(150) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `cim` varchar(255) COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
+  `nev` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
+  `cim` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -364,7 +448,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'asd','asd@asd.asd','$2b$10$pq/PObVPrF0gU1js.Qw4TeRwxZftI5lKqutco8f3FuCJVL8qpBTue','asd','2025-12-03 10:25:15'),(2,'dsa','dsa@dsa.dsa','$2b$10$v/ofSzF5oxSv46YfQnaThOsvsex6TKPk4XJbXdq3xbljx9j5mCKTi','asd','2025-12-04 07:12:00'),(3,'sdfg','dhgfd@hisdbf.gf','$2b$10$fYKXwFp3Y23NRLcNp4oJROe3XaV6v9rLkp5GTfAE91iZCoS7dtF06','ADWSSA','2025-12-10 07:13:02');
+INSERT INTO `users` VALUES (5,'gsdfg','asdasdasdasdas@aasdasdasdsd.asdasdsadas','$2b$10$0Pn87Y9cqSaxsDe9BCcHwOTXhH/3JOVOL4wF/s6GrMXLvy0akrYx.','sghehrh','2025-12-15 11:42:23'),(6,'asd2','asd@asd.asd','$2b$10$xym7VUM8YfOv1g9fFCbySOBpaVWUgj/dpu/cfIv/EZNkstj1wAjye','asd','2025-12-15 11:43:31'),(7,'dsa','dsa@dsa.dsa','$2b$10$Ms6fgAGbVGJhYFEVo5kpM.vnKIiMY5RMNOtcfvlFo6WVQNPv6Oyce','dsa','2026-01-12 08:52:40'),(8,'gfbn','gunigunda@gmail.com','$2b$10$yVtWltIo7mXHtxdS0oUSpu5Z0c65vrVSFNkFkKbidwmYmUo6NPO7q','ergw','2026-01-13 10:16:48'),(9,'segb','sss@sss@sss','$2b$10$VA7rYo/Va.BqIUQpj/Wkde4Zs0tCCfT.A6pRiP4Yq84A6m0YLx1dK','sss','2026-01-14 09:06:30'),(10,'ssss','ssss@ssss@ssss','$2b$10$wCVEd8R6RKxHnONqt7hvhOoSHftewDzhDI3j7onB7AUqsoGvwQB56','ssssss','2026-01-14 09:21:42'),(11,'aa','aa@aa.aa','$2b$10$zjhhIR89.HU6TXT2FPo0WOar/oLC7I7CFzS82dlJ/bNhE6bZk0mKC','aa','2026-01-21 11:36:42'),(13,'gg','gg@gg.gg','$2b$10$y5LkA6jyK.GN2XXkLHaoa.reKz4YoI1bMjX69WJnctRReXpKuoEh.','gg','2026-02-03 08:41:14');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -377,4 +461,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-15 12:12:35
+-- Dump completed on 2026-02-12  9:43:27

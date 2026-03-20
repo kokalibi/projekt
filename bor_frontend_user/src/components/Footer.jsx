@@ -3,12 +3,13 @@ import { Container } from "react-bootstrap";
 function Footer() {
   return (
     <footer
+      className="mt-auto"
       style={{
         background: "#222",
         color: "white",
         padding: "25px 0",
-        marginTop: "50px",
         textAlign: "center",
+        width: "100%"
       }}
     >
       <Container>

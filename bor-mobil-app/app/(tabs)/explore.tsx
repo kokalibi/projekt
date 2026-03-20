@@ -1,112 +1,116 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import API from '../api';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+export default function ProfileScreen() {
+  const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+  const router = useRouter();
 
-export default function TabTwoScreen() {
+  const [formData, setFormData] = useState({ nev: '', email: '', cim: '' });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        nev: user.nev || '',
+        email: user.email || '',
+        cim: user.cim || '',
+      });
+    }
+  }, [user]);
+
+  // Adatok mentése (csak bejelentkezve)
+  const handleUpdate = async () => {
+    setSaving(true);
+    try {
+      await API.put("/user/update", formData);
+      Alert.alert("Siker", "Adataidat frissítettük!");
+    } catch (err) {
+      Alert.alert("Hiba", "Nem sikerült a mentés.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (authLoading) return <ActivityIndicator size="large" color="#722f37" style={{flex: 1}} />;
+
+  // --- 1. ESET: NINCS BEJELENTKEZVE ---
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+        <Text style={styles.title}>Profil eléréséhez jelentkezz be</Text>
+        
+        <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+          <Text style={styles.buttonText}>Bejelentkezés</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.registerLink} onPress={() => router.push('/register')}>
+          <Text style={styles.registerText}>Még nincs fiókod? Regisztráció</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // --- 2. ESET: BE VAN JELENTKEZVE ---
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.welcome}>Szia, {user?.nev}!</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Név</Text>
+        <TextInput 
+          style={styles.input} 
+          value={formData.nev} 
+          onChangeText={(t) => setFormData({...formData, nev: t})} 
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
+
+        <Text style={styles.label}>Email</Text>
+        <TextInput 
+          style={[styles.input, {backgroundColor: '#eee'}]} 
+          value={formData.email} 
+          editable={false} 
         />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+
+        <Text style={styles.label}>Szállítási cím</Text>
+        <TextInput 
+          style={styles.input} 
+          value={formData.cim} 
+          multiline
+          onChangeText={(t) => setFormData({...formData, cim: t})} 
+        />
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={saving}>
+          {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Mentés</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <Text style={styles.logoutText}>Kijelentkezés</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  card: { backgroundColor: '#fff', padding: 20, margin: 15, borderRadius: 10, elevation: 3 },
+  title: { fontSize: 18, marginVertical: 20, color: '#555', textAlign: 'center' },
+  label: { fontWeight: 'bold', marginBottom: 5, color: '#722f37' },
+  input: { borderWidth: 1, borderColor: '#ddd', padding: 10, borderRadius: 5, marginBottom: 15 },
+  loginButton: { backgroundColor: '#722f37', padding: 15, borderRadius: 5, width: '100%', alignItems: 'center' },
+  saveButton: { backgroundColor: '#28a745', padding: 15, borderRadius: 5, marginTop: 10, alignItems: 'center' },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  registerLink: { marginTop: 20 },
+  registerText: { color: '#007bff' },
+  logoutButton: { marginTop: 20, alignItems: 'center' },
+  logoutText: { color: '#dc3545' },
+  header: { padding: 20, alignItems: 'center' },
+  welcome: { fontSize: 22, fontWeight: 'bold' }
 });

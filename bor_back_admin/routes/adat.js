@@ -1,25 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../config/db");
+const adatController = require("../controllers/adat_controller");
 
-router.get("/pincek", async (req, res) => {
-  const [rows] = await pool.query("SELECT pince_id, nev FROM pincek ORDER BY nev");
-  res.json(rows);
-});
+// Adatlekérések
+router.get("/pincek", adatController.getPincek);
+router.get("/orszagok", adatController.getOrszagok);
+router.get("/fajtak", adatController.getFajtak);
+router.get("/tipusok", adatController.getTipusok);
+router.get("/evjaratok", adatController.getEvjaratok);
 
-router.get("/fajtak", async (req, res) => {
-  const [rows] = await pool.query("SELECT fajta_id, nev FROM fajtak ORDER BY nev");
-  res.json(rows);
-});
+// Adatmentések
+router.post("/pincek", adatController.addPince);
+router.post("/orszagok", adatController.addOrszag);
+router.post("/fajtak", adatController.addFajta);
+router.post("/tipusok", adatController.addTipus);
+router.post("/evjaratok", adatController.addEvjarat);
 
-router.get("/evjaratok", async (req, res) => {
-  const [rows] = await pool.query("SELECT evjarat_id, evjarat FROM evjaratok ORDER BY evjarat DESC");
-  res.json(rows);
-});
-
-router.get("/tipusok", async (req, res) => {
-  const [rows] = await pool.query("SELECT tipus_id, nev FROM bor_tipusok ORDER BY nev");
-  res.json(rows);
-});
+// Adattörlések
+router.delete("/pincek/:id", adatController.removePince);
+router.delete("/orszagok/:id", adatController.removeOrszag);
+router.delete("/fajtak/:id", adatController.removeFajta);
+router.delete("/tipusok/:id", adatController.removeTipus);
+router.delete("/evjaratok/:id", adatController.removeEvjarat);
 
 module.exports = router;

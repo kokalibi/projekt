@@ -39,6 +39,7 @@ export default function AppNavbar() {
             <LinkContainer to="/"><Nav.Link>Rendelések</Nav.Link></LinkContainer>
             <LinkContainer to="/add"><Nav.Link>Új bor</Nav.Link></LinkContainer>
             <LinkContainer to="/manage"><Nav.Link>Kezelés</Nav.Link></LinkContainer>
+            <LinkContainer to="/admin/base-data"><Nav.Link>Alapadatok</Nav.Link></LinkContainer>
             <LinkContainer to="/chat" className="position-relative">
               <Nav.Link>
                 Üzenetek

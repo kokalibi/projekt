@@ -1,20 +1,6 @@
 const User = require("../models/user_model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-
-/**
- * Nodemailer konfiguráció
- */
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false, 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 /**
  * Token generáló segédfüggvények
@@ -50,33 +36,12 @@ exports.register = async (req, res) => {
     // Jelszó titkosítása
     const hashed = await bcrypt.hash(jelszo, 10);
 
-    // JAVÍTÁS: A modell 'password_hash' kulcsot vár
+    // Felhasználó létrehozása
     const user_id = await User.create({ 
       nev, 
       email, 
       password_hash: hashed, 
       cim 
-    });
-
-    // --- VISSZAIGAZOLÓ EMAIL KÜLDÉSE ---
-    const mailOptions = {
-      from: `"DrágaBorok Webshop" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Sikeres regisztráció - DrágaBorok",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
-          <h1 style="color: #800000; text-align: center;">Üdvözlünk nálunk, ${nev}!</h1>
-          <p>Köszönjük, hogy regisztráltál a <strong>DrágaBorok</strong> webshopba.</p>
-          <p>Fiókod sikeresen elkészült a következő email címmel: <strong>${email}</strong></p>
-          <br>
-          <p>Üdvözlettel,<br><strong>A DrágaBorok csapata</strong></p>
-        </div>
-      `,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) console.error("Nodemailer hiba:", error);
-      else console.log("Regisztrációs email elküldve: " + info.response);
     });
 
     // Tokenek generálása az új ID-val
@@ -105,7 +70,6 @@ exports.login = async (req, res) => {
     const { email, jelszo } = req.body;
     const user = await User.findByEmail(email);
 
-    // Ellenőrzés: password_hash mezőt használunk az összehasonlításhoz
     if (!user || !(await bcrypt.compare(jelszo, user.password_hash))) {
       return res.status(401).json({ error: "Hibás email vagy jelszó" });
     }

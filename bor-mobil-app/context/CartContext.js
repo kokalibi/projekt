@@ -2,80 +2,101 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CartContext = createContext(null);
-const CART_KEY = "bor_mobile_cart";
+const CART_STORAGE_KEY = "draga_borok_cart";
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔄 KOSÁR BETÖLTÉSE INDÍTÁSKOR (AsyncStorage-ból)
+  /**
+   * BETÖLTÉS
+   * Alkalmazás indításakor visszaolvassuk a kosár tartalmát.
+   */
   useEffect(() => {
-    const loadCart = async () => {
+    const loadCartFromStorage = async () => {
       try {
-        const stored = await AsyncStorage.getItem(CART_KEY);
-        if (stored) {
-          setCart(JSON.parse(stored));
+        const storedCart = await AsyncStorage.getItem(CART_STORAGE_KEY);
+        if (storedCart) {
+          setCart(JSON.parse(storedCart));
         }
       } catch (err) {
-        console.error("Hiba a kosár betöltésekor:", err);
+        console.error("Kosár betöltési hiba:", err);
       } finally {
         setLoading(false);
       }
     };
-    loadCart();
+    loadCartFromStorage();
   }, []);
 
-  // 💾 MENTÉS MINDEN VÁLTOZÁSNÁL
+  /**
+   * AUTOMATIKUS MENTÉS
+   * Minden alkalommal elmentjük a kosarat, ha változik a tartalma.
+   */
   useEffect(() => {
-    const saveCart = async () => {
+    const saveCartToStorage = async () => {
       try {
-        await AsyncStorage.setItem(CART_KEY, JSON.stringify(cart));
+        await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
       } catch (err) {
-        console.error("Hiba a kosár mentésekor:", err);
+        console.error("Kosár mentési hiba:", err);
       }
     };
-    if (!loading) saveCart(); // Csak akkor mentsen, ha már betöltött az eredeti
+    if (!loading) saveCartToStorage();
   }, [cart, loading]);
 
-  // ➕ KOSÁRBA TÉTEL (Webes logika)
+  /**
+   * KOSÁRBA TÉTEL
+   * Ha a bor már benne van, növeljük a mennyiséget.
+   */
   const addToCart = (bor) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.bor_id === bor.bor_id);
-      if (existing) {
-        return prev.map((i) =>
-          i.bor_id === bor.bor_id
-            ? { ...i, mennyiseg: i.mennyiseg + 1 }
-            : i
+    setCart((prevCart) => {
+      const isItemInCart = prevCart.find((item) => item.bor_id === bor.bor_id);
+
+      if (isItemInCart) {
+        return prevCart.map((item) =>
+          item.bor_id === bor.bor_id
+            ? { ...item, mennyiseg: (item.mennyiseg || 1) + 1 }
+            : item
         );
       }
-      return [...prev, { ...bor, mennyiseg: 1 }];
+
+      return [...prevCart, { ...bor, mennyiseg: 1 }];
     });
   };
 
-  // 🔢 MENNYISÉG MÓDOSÍTÁS
-  const updateQuantity = (bor_id, mennyiseg) => {
-    if (mennyiseg < 1) {
+  /**
+   * MENNYISÉG MÓDOSÍTÁSA
+   */
+  const updateQuantity = (bor_id, ujMennyiseg) => {
+    if (ujMennyiseg < 1) {
       removeFromCart(bor_id);
       return;
     }
-    setCart((prev) =>
-      prev.map((i) => (i.bor_id === bor_id ? { ...i, mennyiseg } : i))
+    setCart((prevCart) =>
+      prevCart.map((item) => 
+        item.bor_id === bor_id ? { ...item, mennyiseg: ujMennyiseg } : item
+      )
     );
   };
 
-  // ❌ TÖRLÉS A KOSÁRBÓL
+  /**
+   * ELTÁVOLÍTÁS
+   */
   const removeFromCart = (bor_id) => {
-    setCart((prev) => prev.filter((i) => i.bor_id !== bor_id));
+    setCart((prevCart) => prevCart.filter((item) => item.bor_id !== bor_id));
   };
 
-  // 🧹 KOSÁR ÜRÍTÉSE (Rendelés után)
+  /**
+   * KOSÁR ÜRÍTÉSE
+   * Sikeres rendelés után hívjuk meg.
+   */
   const clearCart = async () => {
     setCart([]);
-    await AsyncStorage.removeItem(CART_KEY);
+    await AsyncStorage.removeItem(CART_STORAGE_KEY);
   };
 
-  // 💰 ÖSSZESEN KISZÁMÍTÁSA
-  const totalAmount = cart.reduce((sum, item) => sum + item.ar * item.mennyiseg, 0);
+  // Számított értékek az UI-nak
+  const totalAmount = cart.reduce((sum, item) => sum + (item.ar * item.mennyiseg), 0);
+  const itemCount = cart.reduce((sum, item) => sum + item.mennyiseg, 0);
 
   return (
     <CartContext.Provider
@@ -86,7 +107,7 @@ export function CartProvider({ children }) {
         removeFromCart,
         clearCart,
         totalAmount,
-        itemCount: cart.length
+        itemCount
       }}
     >
       {children}

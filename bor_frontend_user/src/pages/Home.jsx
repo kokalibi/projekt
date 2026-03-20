@@ -1,6 +1,6 @@
 import { Carousel, Container, Row, Col } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";   // <-- EZ ÚJ
+import { useNavigate } from "react-router-dom"; 
 import API from "../api";
 import WineCard from "../components/WineCard";
 import "../home.css";
@@ -11,7 +11,7 @@ function Home() {
   const [kiemelt, setKiemelt] = useState([]);
   const [ajanlott, setAjanlott] = useState([]);
 
-  const navigate = useNavigate();   // <-- NAVIGÁLÁSHOZ
+  const navigate = useNavigate();
 
   const goToDetails = (id) => {
     navigate(`/bor/${id}`);
@@ -26,42 +26,41 @@ function Home() {
   }, []);
 
   return (
-    <Container className="mt-4">
+    /* A fluid={true} biztosítja, hogy a háttér kitöltse a teret, 
+       a p-0 pedig eltünteti a belső fehér töréseket */
+    <Container fluid className="p-0 main-home-container">
+      <Container className="mt-4">
+        {/* A variant="dark" feketére színezi a nyilakat és az indikátorokat */}
+        <Carousel variant="dark" className="custom-carousel shadow-sm mb-5">
+          {kiemelt.map((bor) => (
+            <Carousel.Item
+              key={bor.bor_id}
+              onClick={() => goToDetails(bor.bor_id)}
+              style={{ cursor: "pointer" }}
+            >
+              <img
+                className="d-block w-100 carousel-img"
+                src={`${API_BASE}/uploads/kep/${bor.bor_id}.jpg`}
+                alt={bor.nev}
+                onError={(e) => (e.target.src = "/monke wine.jpg")}
+              />
+              <Carousel.Caption className="custom-caption">
+                <h3>{bor.nev}</h3>
+                <p>{bor.pince_nev}</p>
+              </Carousel.Caption>
+            </Carousel.Item>
+          ))}
+        </Carousel>
 
-      <Carousel>
-        {kiemelt.map((bor) => (
-          <Carousel.Item
-            key={bor.bor_id}
-            onClick={() => goToDetails(bor.bor_id)}   // <-- KATTINTÁS
-            style={{ cursor: "pointer" }}            // <-- KÉZ IKON
-          >
-            <img
-              className="d-block w-100"
-              src={`${API_BASE}/uploads/kep/${bor.bor_id}.jpg`}
-              alt={bor.nev}
-              onError={(e) => (e.target.src = "/placeholder-wine.png")}
-            />
-            <Carousel.Caption>
-              <h3>{bor.nev}</h3>
-              <p>{bor.pince_nev}</p>
-            </Carousel.Caption>
-          </Carousel.Item>
-        ))}
-      </Carousel>
-
-
-      {/* Ajánlott borok */}
-      <div className="home-recommend">
-        <h2 className="mt-5 mb-3 text-center">Ajánlott borok</h2>
-        <Row className="g-3">
+        <h2 className="mb-4 text-center">Ajánlott boraink</h2>
+        <Row>
           {ajanlott.map((bor) => (
-            <Col md={4} lg={3} key={bor.bor_id}>
+            <Col key={bor.bor_id} md={3} sm={6} className="mb-4">
               <WineCard bor={bor} />
             </Col>
           ))}
         </Row>
-      </div>
-
+      </Container>
     </Container>
   );
 }

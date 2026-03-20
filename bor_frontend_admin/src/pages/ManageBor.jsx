@@ -17,10 +17,10 @@ function AdminBorok() {
   const [pince, setPince] = useState("");
   const [evjarat, setEvjarat] = useState("");
 
-  // Dropdown opciók (Egyszer töltjük le, hogy ne változzanak szűrés közben)
+  // Dropdown opciók
   const [options, setOptions] = useState({ tipusok: [], fajtak: [], pincek: [], evjaratok: [] });
 
-  // 1. KEZDETI ADATOK: Opciók és az első adathalmaz betöltése
+  // 1. KEZDETI ADATOK
   useEffect(() => {
     API.get("/borok").then((res) => {
       setOptions({
@@ -29,14 +29,12 @@ function AdminBorok() {
         pincek: [...new Set(res.data.map((b) => b.pince_nev))],
         evjaratok: [...new Set(res.data.map((b) => b.evjarat))],
       });
-      // Kezdeti lista megjelenítése
       setBorok(res.data);
       setVisible(res.data.slice(0, 30));
     });
   }, []);
 
-  // 2. BACKEND SZŰRÉS: Paraméteres lekérés
-  // A search mezőhöz egy kis késleltetést (debounce) használunk a useEffect-en belül
+  // 2. BACKEND SZŰRÉS (Debounce-al)
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       const params = { search, tipus, fajta, pince, evjarat };
@@ -46,17 +44,16 @@ function AdminBorok() {
         setLoadIndex(30);
         setVisible(res.data.slice(0, 30));
       });
-    }, 400); // 400ms várakozás gépelés után
+    }, 400);
 
     return () => clearTimeout(delayDebounceFn);
   }, [search, tipus, fajta, pince, evjarat]);
 
-  // 3. TÖRLÉS FUNKCIÓ (Változatlan logika, de frissíti a szűrt listát)
+  // 3. TÖRLÉS FUNKCIÓ
   const deleteBor = async (id) => {
     if (!window.confirm("Biztosan törölni szeretné ezt a bort?")) return;
     try {
       await API.delete(`/borok/${id}`);
-      // Kivesszük a helyi listából, hogy ne kelljen az egész API-t újra hívni
       const newList = borok.filter((b) => b.bor_id !== id);
       setBorok(newList);
       setVisible(newList.slice(0, loadIndex));
@@ -65,7 +62,7 @@ function AdminBorok() {
     }
   };
 
-  // 4. INFINITE SCROLL (Görgetés kezelése)
+  // 4. INFINITE SCROLL
   const handleScroll = useCallback(() => {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
       if (loadIndex < borok.length) {
@@ -85,7 +82,7 @@ function AdminBorok() {
     <Container className="my-4">
       <h2 className="mb-4 text-center text-md-start">Borok kezelése (Admin)</h2>
 
-      {/* SZŰRŐK - Card-ba csomagolva */}
+      {/* SZŰRŐK */}
       <Card className="p-3 shadow-sm mb-4 border-0 bg-light">
         <Row className="g-2">
           <Col xs={12} md={4} lg={3}>
@@ -130,7 +127,7 @@ function AdminBorok() {
               <th>Kép</th>
               <th>Név</th>
               <th className="d-none d-lg-table-cell">Típus</th>
-              <th className="d-none d-md-table-cell">Pince</th>
+              <th className="d-none d-md-table-cell">Pince / Elérhetőség</th>
               <th>Évjárat</th>
               <th>Ár</th>
               <th>Műveletek</th>
@@ -153,7 +150,22 @@ function AdminBorok() {
                   </td>
                   <td className="fw-bold">{bor.nev}</td>
                   <td className="d-none d-lg-table-cell">{bor.tipus_nev}</td>
-                  <td className="d-none d-md-table-cell">{bor.pince_nev}</td>
+                  {/* Pince és Elérhetőségek megjelenítése */}
+                  <td className="d-none d-md-table-cell">
+                    <div className="fw-bold">{bor.pince_nev}</div>
+                    <div className="small text-muted" style={{ fontSize: "0.85rem" }}>
+                      {bor.pince_telefon && (
+                        <div className="d-flex align-items-center">
+                          <span className="me-1">📞</span> {bor.pince_telefon}
+                        </div>
+                      )}
+                      {bor.pince_email && (
+                        <div className="d-flex align-items-center">
+                          <span className="me-1">✉️</span> {bor.pince_email}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td>{bor.evjarat}</td>
                   <td className="text-nowrap">{bor.ar.toLocaleString()} Ft</td>
                   <td>
@@ -165,7 +177,6 @@ function AdminBorok() {
                       >
                         Törlés
                       </Button>
-                      {/* Itt maradhatnak az egyéb gombok, pl. Szerkesztés */}
                     </div>
                   </td>
                 </tr>

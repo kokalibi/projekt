@@ -8,6 +8,8 @@ Borok.getAll = async (filters = {}) => {
     SELECT 
       b.*,
       p.nev AS pince_nev,
+      p.telefon AS pince_telefon, -- ÚJ MEZŐ
+      p.email AS pince_email,     -- ÚJ MEZŐ
       f.nev AS fajta_nev,
       t.nev AS tipus_nev,
       e.evjarat
