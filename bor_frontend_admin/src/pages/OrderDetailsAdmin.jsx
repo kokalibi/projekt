@@ -71,7 +71,7 @@ export default function OrderDetailsAdmin() {
     <Container className="py-4">
       {/* Felső vezérlő sáv */}
       <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-        <Button variant="outline-secondary" onClick={() => navigate("/admin/orders")}>
+        <Button variant="outline-secondary" onClick={() => navigate("/")}>
           ← Vissza a listához
         </Button>
         <Button variant="danger" className="fw-bold shadow-sm" onClick={deleteOrder}>
