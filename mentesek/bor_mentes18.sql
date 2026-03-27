@@ -396,34 +396,6 @@ INSERT INTO `rendelesek` VALUES (1,4,89990.00,1,1,2,'2025-12-15 10:52:46','2026-
 UNLOCK TABLES;
 
 --
--- Table structure for table `szamlak`
---
-
-DROP TABLE IF EXISTS `szamlak`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `szamlak` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `rendeles_id` int NOT NULL,
-  `szamlaszam` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci NOT NULL,
-  `letrehozva` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `szamlaszam` (`szamlaszam`),
-  KEY `rendeles_id` (`rendeles_id`),
-  CONSTRAINT `szamlak_ibfk_1` FOREIGN KEY (`rendeles_id`) REFERENCES `rendelesek` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_hungarian_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `szamlak`
---
-
-LOCK TABLES `szamlak` WRITE;
-/*!40000 ALTER TABLE `szamlak` DISABLE KEYS */;
-/*!40000 ALTER TABLE `szamlak` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `users`
 --
 
@@ -461,4 +433,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-24 11:07:05
+-- Dump completed on 2026-03-27 11:14:11
