@@ -83,8 +83,8 @@ const Order = {
       await conn.beginTransaction();
 
       const [szallRes] = await conn.query(
-        "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1) VALUES (?,?,?,?,?,?,?)",
-        [szallitasi_cim.teljes_nev, szallitasi_cim.email, szallitasi_cim.telefon, szallitasi_cim.orszag, szallitasi_cim.varos, szallitasi_cim.iranyitoszam, szallitasi_cim.cim_sor1]
+        "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
+        [szallitasi_cim.teljes_nev, szallitasi_cim.email, szallitasi_cim.telefon, szallitasi_cim.orszag, szallitasi_cim.varos, szallitasi_cim.iranyitoszam, szallitasi_cim.cim_sor1, szallitasi_cim.cim_sor2]
       );
       const szallitasiCimId = szallRes.insertId;
 
