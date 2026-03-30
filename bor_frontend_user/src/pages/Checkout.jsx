@@ -107,23 +107,23 @@ export default function Checkout() {
     setHiba("");
     setSiker("");
 
+    // Alapvető ellenőrzések a küldés előtt
     if (cart.length === 0) {
-      setHiba("A kosar ures.");
+      setHiba("A kosár üres.");
       return;
     }
 
     if (!valasztottModId) {
-      setHiba("Kerlek valassz fizetesi modot.");
+      setHiba("Kérjük, válassz fizetési módot.");
       return;
     }
 
-    // JAVÍTÁS: Mindig legyen szamlazasi_cim objektum, ne csak 'null'
-    const veglegesSzamlazasiCim = azonosCim ? form : szamlazasiForm;
-
+    // LOGIKA: Ha az azonosCim true, null-t küldünk, így a backend 
+    // tudja, hogy a szállítási cím ID-ját kell használnia másodszor is.
     const payload = {
       fizetesi_mod_id: valasztottModId,
       szallitasi_cim: form,
-      szamlazasi_cim: veglegesSzamlazasiCim, // Így a backend le tudja menteni
+      szamlazasi_cim: azonosCim ? null : szamlazasiForm, 
       kosar: cart.map(item => ({
         bor_id: item.bor_id,
         bor_nev: item.nev,
@@ -135,12 +135,20 @@ export default function Checkout() {
 
     try {
       setLoading(true);
+      // API hívás a backend felé
       const res = await API.post("/orders", payload);
-      setSiker(`Rendeles sikeres! Azonosito: ${res.data.rendeles_id}`);
+      
+      // Sikeres rendelés esetén visszajelzés és kosár ürítés
+      setSiker(`Rendelés sikeres! Azonosító: ${res.data.rendeles_id}`);
       clearCart();
+      
+      // Opcionális: 2 másodperc múlva visszairányítás a főoldalra
+      // setTimeout(() => navigate("/"), 2000);
+
     } catch (err) {
-      console.error(err);
-      setHiba("Hiba tortent a rendeles leadasakor.");
+      console.error("Rendelés hiba:", err);
+      // Hibaüzenet megjelenítése a felhasználónak
+      setHiba(err.response?.data?.error || "Hiba történt a rendelés leadásakor.");
     } finally {
       setLoading(false);
     }
