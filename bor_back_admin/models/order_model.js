@@ -76,40 +76,78 @@ const Order = {
   },
 
   // 5. Rendszer: Új rendelés létrehozása
-  create: async (data) => {
-    const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod_id, vegosszeg } = data;
-    const conn = await db.getConnection();
-    try {
-      await conn.beginTransaction();
+ create: async (data) => {
+  const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod_id, vegosszeg, user_id } = data;
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
 
-      const [szallRes] = await conn.query(
-        "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1) VALUES (?,?,?,?,?,?,?)",
-        [szallitasi_cim.teljes_nev, szallitasi_cim.email, szallitasi_cim.telefon, szallitasi_cim.orszag, szallitasi_cim.varos, szallitasi_cim.iranyitoszam, szallitasi_cim.cim_sor1]
+    // 1. Szállítási cím mentése (mindig létrejön)
+    const [szallRes] = await conn.query(
+      "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
+      [
+        szallitasi_cim.teljes_nev, 
+        szallitasi_cim.email, 
+        szallitasi_cim.telefon, 
+        szallitasi_cim.orszag, 
+        szallitasi_cim.varos, 
+        szallitasi_cim.iranyitoszam, 
+        szallitasi_cim.cim_sor1, 
+        szallitasi_cim.cim_sor2 || null
+      ]
+    );
+    const szallitasiCimId = szallRes.insertId;
+
+    // 2. Számlázási cím kezelése
+    let szamlazasiCimId;
+
+    // Ha nincs külön számlázási cím küldve (null), vagy az adatok megegyeznek
+    if (!szamlazasi_cim || szamlazasi_cim === null) {
+      // Nem hozunk létre újat, ugyanazt az ID-t használjuk
+      szamlazasiCimId = szallitasiCimId;
+    } else {
+      // Ha van külön számlázási cím, akkor azt elmentjük egy új sorba
+      const [szamlRes] = await conn.query(
+        "INSERT INTO cimek (teljes_nev, email, telefon, orszag, varos, iranyitoszam, cim_sor1, cim_sor2) VALUES (?,?,?,?,?,?,?,?)",
+        [
+          szamlazasi_cim.teljes_nev, 
+          szamlazasi_cim.email || szallitasi_cim.email, // Ha üres, a szállításit használjuk
+          szamlazasi_cim.telefon || szallitasi_cim.telefon, 
+          szamlazasi_cim.orszag, 
+          szamlazasi_cim.varos, 
+          szamlazasi_cim.iranyitoszam, 
+          szamlazasi_cim.cim_sor1, 
+          szamlazasi_cim.cim_sor2 || null
+        ]
       );
-      const szallitasiCimId = szallRes.insertId;
-
-      const [orderRes] = await conn.query(
-        "INSERT INTO rendelesek (statusz_id, vegosszeg, fizetesi_mod_id, szallitasi_cim_id) VALUES (1, ?, ?, ?)",
-        [vegosszeg, fizetesi_mod_id, szallitasiCimId]
-      );
-      
-      const orderId = orderRes.insertId;
-      for (const item of kosar) {
-        await conn.query(
-          "INSERT INTO rendeles_tetelek (rendeles_id, bor_id, bor_nev, egysegar, mennyiseg) VALUES (?,?,?,?,?)",
-          [orderId, item.bor_id, item.bor_nev, item.egysegar, item.mennyiseg]
-        );
-      }
-
-      await conn.commit();
-      return { orderId, vegosszeg };
-    } catch (err) {
-      await conn.rollback();
-      throw err;
-    } finally {
-      conn.release();
+      szamlazasiCimId = szamlRes.insertId;
     }
-  },
+
+    // 3. Rendelés mentése a két ID-val (amik lehetnek azonosak is)
+    const [orderRes] = await conn.query(
+  "INSERT INTO rendelesek (statusz_id, vegosszeg, fizetesi_mod_id, szallitasi_cim_id, szamlazasi_cim_id) VALUES (1, ?, ?, ?, ?)",
+  [vegosszeg, fizetesi_mod_id, szallitasiCimId, szamlazasiCimId]
+);
+    
+    const orderId = orderRes.insertId;
+
+    // 4. Tételek mentése (marad a régi)
+    for (const item of kosar) {
+      await conn.query(
+        "INSERT INTO rendeles_tetelek (rendeles_id, bor_id, bor_nev, egysegar, mennyiseg) VALUES (?,?,?,?,?)",
+        [orderId, item.bor_id, item.bor_nev, item.egysegar, item.mennyiseg]
+      );
+    }
+
+    await conn.commit();
+    return { orderId, vegosszeg };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+},
   delete: async (id) => {
     const conn = await db.getConnection();
     try {

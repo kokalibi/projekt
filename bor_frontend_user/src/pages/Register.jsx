@@ -56,7 +56,7 @@ export default function Register() {
         </div>
 
         <div className="mb-3">
-          <label className="form-label">Cím</label>
+          <label className="form-label">Cím (utca, házszám)</label>
           <input className="form-control" value={cim}
                  onChange={(e) => setCim(e.target.value)} />
         </div>

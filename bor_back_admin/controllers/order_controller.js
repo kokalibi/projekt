@@ -45,12 +45,27 @@ exports.getOrderItems = async (req, res) => {
 
 exports.addOrder = async (req, res) => {
   try {
-    const { szallitasi_cim, kosar, fizetesi_mod_id } = req.body; //
-    const vegosszeg = kosar.reduce((sum, item) => sum + item.egysegar * item.mennyiseg, 0); //
+    // Kiemeljük a szamlazasi_cim-et is a kérésből
+    const { szallitasi_cim, szamlazasi_cim, kosar, fizetesi_mod_id } = req.body; 
 
-    const result = await Order.create({ szallitasi_cim, kosar, fizetesi_mod_id, vegosszeg }); //
+    if (!szallitasi_cim || !kosar || kosar.length === 0) {
+      return res.status(400).json({ error: "Hiányos adatok!" });
+    }
+
+    const vegosszeg = kosar.reduce((sum, item) => sum + item.egysegar * item.mennyiseg, 0);
+
+    // Átadjuk a szamlazasi_cim-et a modellnek
+    const result = await Order.create({ 
+      szallitasi_cim, 
+      szamlazasi_cim, 
+      kosar, 
+      fizetesi_mod_id, 
+      vegosszeg 
+    });
+
     res.json({ rendeles_id: result.orderId, vegosszeg: result.vegosszeg });
   } catch (err) {
+    console.error("addOrder hiba:", err);
     res.status(500).json({ error: "Sikertelen mentés" });
   }
 };
